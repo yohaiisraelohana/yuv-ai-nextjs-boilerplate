@@ -3,7 +3,7 @@
 A modern Next.js boilerplate with Clerk authentication, Tailwind CSS, and shadcn/ui components.
 ![Boilerplate Homepage - Light](https://imgur.com/CnwTENH))
 ![Boilerplate Homepage - Dark](https://imgur.com/KoLCKZQ)
-![Boilerplate Dashboard - Light](https://imgur.com/W3p472n)
+![Boilerplate Dashboard - Light]([https://imgur.com/W3p472n](https://i.imgur.com/W3p472n.png))
 
 ## Features
 
