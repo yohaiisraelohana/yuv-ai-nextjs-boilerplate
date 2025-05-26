@@ -67,6 +67,26 @@ export function Navbar() {
                 >
                   מוצרים
                 </Link>
+                <Link
+                  href="/customers"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium mx-2 ${
+                    pathname === "/customers"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                  }`}
+                >
+                  לקוחות
+                </Link>
+                <Link
+                  href="/quotes"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium mx-2 ${
+                    pathname === "/quotes"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                  }`}
+                >
+                  הצעות מחיר
+                </Link>
               </div>
             </div>
             <div className="flex items-center">
@@ -160,6 +180,26 @@ export function Navbar() {
                 }`}
               >
                 מוצרים
+              </Link>
+              <Link
+                href="/customers"
+                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                  pathname === "/customers"
+                    ? "bg-indigo-50 border-primary text-primary"
+                    : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                }`}
+              >
+                לקוחות
+              </Link>
+              <Link
+                href="/quotes"
+                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                  pathname === "/quotes"
+                    ? "bg-indigo-50 border-primary text-primary"
+                    : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                }`}
+              >
+                הצעות מחיר
               </Link>
             </div>
           </div>
