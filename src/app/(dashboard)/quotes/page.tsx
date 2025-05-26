@@ -25,6 +25,26 @@ type QuoteType = {
   notes?: string;
 };
 
+type MongoQuote = {
+  _id: Types.ObjectId;
+  quoteNumber: string;
+  type: "שירותים" | "סדנאות" | "מוצרים";
+  customer: { _id: Types.ObjectId; name: string };
+  validUntil: Date;
+  totalAmount: number;
+  status: "טיוטה" | "נשלחה" | "מאושרת" | "נדחתה" | "פג תוקף";
+  items: Array<{
+    _id: Types.ObjectId;
+    product: { _id: Types.ObjectId; name: string; price: number };
+    quantity: number;
+    price: number;
+    discount: number;
+  }>;
+  notes?: string;
+  createdAt: Date;
+  updatedAt: Date;
+};
+
 async function getQuotes() {
   try {
     await connectToDatabase();
@@ -32,7 +52,29 @@ async function getQuotes() {
       .populate("customer", "name")
       .sort({ createdAt: -1 })
       .lean();
-    return quotes as unknown as QuoteType[];
+
+    const serializedQuotes = quotes.map((quote: any) => ({
+      ...quote,
+      _id: quote._id.toString(),
+      customer: {
+        _id: quote.customer._id.toString(),
+        name: quote.customer.name,
+      },
+      items: quote.items.map((item: any) => ({
+        ...item,
+        _id: item._id.toString(),
+        product: {
+          _id: item.product._id.toString(),
+          name: item.product.name,
+          price: item.product.price,
+        },
+      })),
+      validUntil: new Date(quote.validUntil),
+      createdAt: new Date(quote.createdAt),
+      updatedAt: new Date(quote.updatedAt),
+    }));
+
+    return serializedQuotes as unknown as QuoteType[];
   } catch (error) {
     console.error("Error fetching quotes:", error);
     return [];

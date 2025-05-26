@@ -50,6 +50,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { getProducts } from "../../products/actions";
 import { createQuote, updateQuote } from "../actions";
+import { getCustomers } from "../../customers/actions";
 
 const quoteSchema = z.object({
   type: z.enum(["שירותים", "סדנאות", "מוצרים"], {
@@ -139,19 +140,32 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const { products } = await getProducts();
-        if (products) {
+        const [productsData, customersData] = await Promise.all([
+          getProducts(),
+          getCustomers(),
+        ]);
+
+        if (productsData.products) {
           setProducts(
-            products.map((p: any) => ({
+            productsData.products.map((p: any) => ({
               _id: p._id,
               name: p.name,
               price: p.price,
             }))
           );
         }
+
+        if (customersData) {
+          setCustomers(
+            customersData.map((c: any) => ({
+              _id: c._id,
+              name: c.name,
+            }))
+          );
+        }
       } catch (error) {
-        console.error("Error fetching products:", error);
-        toast.error("שגיאה בטעינת המוצרים");
+        console.error("Error fetching data:", error);
+        toast.error("שגיאה בטעינת הנתונים");
       }
     };
 
@@ -243,41 +257,30 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
                 render={({ field }) => (
                   <FormItem>
                     <FormLabel>לקוח</FormLabel>
-                    <Popover>
-                      <PopoverTrigger asChild>
-                        <FormControl>
-                          <Button
-                            variant="outline"
-                            role="combobox"
-                            className="w-full justify-between"
-                          >
-                            {field.value.name || "בחר לקוח"}
-                          </Button>
-                        </FormControl>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-full p-0" align="start">
-                        <Command>
-                          <CommandInput
-                            placeholder="חפש לקוח..."
-                            value={searchCustomer}
-                            onValueChange={setSearchCustomer}
-                          />
-                          <CommandEmpty>לא נמצאו לקוחות</CommandEmpty>
-                          <CommandGroup>
-                            {customers.map((customer) => (
-                              <CommandItem
-                                key={customer._id}
-                                onSelect={() => {
-                                  form.setValue("customer", customer);
-                                }}
-                              >
-                                {customer.name}
-                              </CommandItem>
-                            ))}
-                          </CommandGroup>
-                        </Command>
-                      </PopoverContent>
-                    </Popover>
+                    <Select
+                      value={field.value._id || ""}
+                      onValueChange={(customerId) => {
+                        const selectedCustomer = customers.find(
+                          (c) => c._id === customerId
+                        );
+                        if (selectedCustomer) {
+                          form.setValue("customer", selectedCustomer);
+                        }
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר לקוח" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {customers.map((customer) => (
+                          <SelectItem key={customer._id} value={customer._id}>
+                            {customer.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                     <FormMessage />
                   </FormItem>
                 )}
