@@ -124,9 +124,20 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
     defaultValues: {
       type: quote?.type || "מוצרים",
       customer: quote?.customer || { _id: "", name: "" },
-      validUntil:
-        quote?.validUntil || new Date(Date.now() + 30 * 24 * 60 * 60 * 1000), // 30 days from now
-      items: quote?.items || [],
+      validUntil: quote?.validUntil
+        ? new Date(quote.validUntil)
+        : new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+      items:
+        quote?.items.map((item) => ({
+          product: {
+            _id: item.product._id,
+            name: item.product.name,
+            price: item.product.price,
+          },
+          quantity: item.quantity,
+          price: item.price,
+          discount: item.discount,
+        })) || [],
       notes: quote?.notes || "",
     },
   });
@@ -163,6 +174,19 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
             }))
           );
         }
+
+        // If editing an existing quote, ensure customer is set
+        if (quote?.customer) {
+          const customer = customersData.find(
+            (c: any) => c._id === quote.customer._id
+          );
+          if (customer) {
+            form.setValue("customer", {
+              _id: customer._id,
+              name: customer.name,
+            });
+          }
+        }
       } catch (error) {
         console.error("Error fetching data:", error);
         toast.error("שגיאה בטעינת הנתונים");
@@ -170,7 +194,7 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
     };
 
     fetchData();
-  }, []);
+  }, [quote, form]);
 
   const handleSubmit = async (data: QuoteFormValues) => {
     try {
@@ -419,9 +443,14 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
                               type="number"
                               min="1"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
+                              onChange={(e) => {
+                                field.onChange(Number(e.target.value));
+                                form.setValue(
+                                  `items.${index}`,
+                                  form.getValues(`items.${index}`),
+                                  { shouldValidate: true, shouldDirty: true }
+                                );
+                              }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -443,9 +472,14 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
                               min="0"
                               step="0.01"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
+                              onChange={(e) => {
+                                field.onChange(Number(e.target.value));
+                                form.setValue(
+                                  `items.${index}`,
+                                  form.getValues(`items.${index}`),
+                                  { shouldValidate: true, shouldDirty: true }
+                                );
+                              }}
                             />
                           </FormControl>
                           <FormMessage />
@@ -468,9 +502,14 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
                               max="100"
                               step="1"
                               {...field}
-                              onChange={(e) =>
-                                field.onChange(Number(e.target.value))
-                              }
+                              onChange={(e) => {
+                                field.onChange(Number(e.target.value));
+                                form.setValue(
+                                  `items.${index}`,
+                                  form.getValues(`items.${index}`),
+                                  { shouldValidate: true, shouldDirty: true }
+                                );
+                              }}
                             />
                           </FormControl>
                           <FormMessage />
