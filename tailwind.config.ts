@@ -19,6 +19,8 @@ const config: Config = {
     extend: {
       fontFamily: {
         outfit: ["var(--font-outfit)"],
+        rubik: ["Rubik", "sans-serif"],
+        heebo: ["Heebo", "sans-serif"],
       },
       colors: {
         yuvai: {
@@ -91,4 +93,4 @@ const config: Config = {
   plugins: [require("tailwindcss-animate")],
 };
 
-export default config; 
+export default config;

@@ -6,7 +6,7 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  --font-sans: "Outfit", sans-serif;
+  --font-sans: "Rubik", "Heebo", sans-serif;
   --font-mono: var(--font-geist-mono);
   --color-sidebar-ring: var(--sidebar-ring);
   --color-sidebar-border: var(--sidebar-border);
@@ -118,10 +118,85 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: "Outfit", sans-serif;
+    font-family: "Rubik", "Heebo", sans-serif;
     position: relative;
     overflow-x: hidden;
   }
+}
+
+/* Hebrew Font Classes */
+.hebrew-app {
+  font-family: "Rubik", "Heebo", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+/* Rubik Font Classes */
+.rubik-light {
+  font-family: "Rubik", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.rubik-regular {
+  font-family: "Rubik", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.rubik-medium {
+  font-family: "Rubik", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.rubik-semibold {
+  font-family: "Rubik", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+}
+
+.rubik-bold {
+  font-family: "Rubik", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+/* Heebo Font Classes */
+.heebo-thin {
+  font-family: "Heebo", sans-serif;
+  font-weight: 100;
+  font-style: normal;
+}
+
+.heebo-light {
+  font-family: "Heebo", sans-serif;
+  font-weight: 300;
+  font-style: normal;
+}
+
+.heebo-regular {
+  font-family: "Heebo", sans-serif;
+  font-weight: 400;
+  font-style: normal;
+}
+
+.heebo-medium {
+  font-family: "Heebo", sans-serif;
+  font-weight: 500;
+  font-style: normal;
+}
+
+.heebo-bold {
+  font-family: "Heebo", sans-serif;
+  font-weight: 700;
+  font-style: normal;
+}
+
+.heebo-black {
+  font-family: "Heebo", sans-serif;
+  font-weight: 900;
+  font-style: normal;
 }
 
 /* Outfit Font Classes with variable weights */
@@ -272,39 +347,49 @@
 }
 
 @keyframes phoenix-fly {
-  0% { transform: translateY(0) rotate(0deg); }
-  25% { transform: translateY(-15px) rotate(2deg); }
-  50% { transform: translateY(0) rotate(0deg); }
-  75% { transform: translateY(-10px) rotate(-2deg); }
-  100% { transform: translateY(0) rotate(0deg); }
+  0% {
+    transform: translateY(0) rotate(0deg);
+  }
+  25% {
+    transform: translateY(-15px) rotate(2deg);
+  }
+  50% {
+    transform: translateY(0) rotate(0deg);
+  }
+  75% {
+    transform: translateY(-10px) rotate(-2deg);
+  }
+  100% {
+    transform: translateY(0) rotate(0deg);
+  }
 }
 
 /* High contrast styles */
 .high-contrast {
   --background: 0 0% 0%;
   --foreground: 0 0% 100%;
-  
+
   --card: 0 0% 0%;
   --card-foreground: 0 0% 100%;
-  
+
   --popover: 0 0% 0%;
   --popover-foreground: 0 0% 100%;
-  
+
   --primary: 60 100% 50%; /* High contrast yellow */
   --primary-foreground: 0 0% 0%;
-  
+
   --secondary: 0 0% 20%;
   --secondary-foreground: 0 0% 100%;
-  
+
   --muted: 0 0% 20%;
   --muted-foreground: 0 0% 80%;
-  
+
   --accent: 0 0% 20%;
   --accent-foreground: 0 0% 100%;
-  
+
   --destructive: 0 100% 50%;
   --destructive-foreground: 0 0% 100%;
-  
+
   --border: 0 0% 40%;
   --input: 0 0% 40%;
   --ring: 60 100% 50%; /* High contrast yellow */
@@ -414,7 +499,9 @@
   opacity: 0.7;
   filter: blur(40px);
   transform-origin: center;
-  animation: glass-gradient-float 15s ease-in-out infinite, glass-gradient-pulse 10s ease-in-out infinite;
+  animation:
+    glass-gradient-float 15s ease-in-out infinite,
+    glass-gradient-pulse 10s ease-in-out infinite;
 }
 
 .glass-shimmer {
@@ -448,7 +535,7 @@
   background: linear-gradient(
     to right,
     rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.05) 25%, 
+    rgba(255, 255, 255, 0.05) 25%,
     rgba(255, 255, 255, 0.1) 50%,
     rgba(255, 255, 255, 0.05) 75%,
     rgba(255, 255, 255, 0) 100%
@@ -460,7 +547,7 @@
 .dark .button.bg-primary,
 .dark button.btn-primary,
 .dark .button.btn-primary,
-.dark [class*='bg-primary'] {
+.dark [class*="bg-primary"] {
   color: white;
   text-shadow: 0 0 3px rgba(0, 0, 0, 0.4);
 }
@@ -479,7 +566,12 @@
 }
 
 .animated-banner {
-  background: linear-gradient(90deg, rgba(124, 58, 237, 0.9), rgba(251, 191, 36, 0.9), rgba(124, 58, 237, 0.9));
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.9),
+    rgba(251, 191, 36, 0.9),
+    rgba(124, 58, 237, 0.9)
+  );
   background-size: 200% 100%;
   animation: banner-gradient-slide 8s infinite;
   backdrop-filter: blur(8px);
@@ -487,7 +579,12 @@
 }
 
 .dark .animated-banner {
-  background: linear-gradient(90deg, rgba(124, 58, 237, 0.6), rgba(251, 191, 36, 0.5), rgba(124, 58, 237, 0.6));
+  background: linear-gradient(
+    90deg,
+    rgba(124, 58, 237, 0.6),
+    rgba(251, 191, 36, 0.5),
+    rgba(124, 58, 237, 0.6)
+  );
   background-size: 200% 100%;
   animation: banner-gradient-slide 8s infinite;
   backdrop-filter: blur(8px);

@@ -20,7 +20,7 @@ export default function RootLayout({
 }) {
   return (
     <ClerkProvider>
-      <html lang="en" className="light" suppressHydrationWarning>
+      <html lang="he" dir="rtl" className="light" suppressHydrationWarning>
         <head>
           <link rel="preconnect" href="https://fonts.googleapis.com" />
           <link
@@ -29,11 +29,11 @@ export default function RootLayout({
             crossOrigin="anonymous"
           />
           <link
-            href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&display=swap"
+            href="https://fonts.googleapis.com/css2?family=Outfit:wght@100..900&family=Rubik:wght@300;400;500;600;700&family=Heebo:wght@100..900&display=swap"
             rel="stylesheet"
           />
         </head>
-        <body className="outfit-app min-h-screen bg-background antialiased transition-colors">
+        <body className="hebrew-app min-h-screen bg-background antialiased transition-colors">
           <AccessibilityProvider>
             <Navbar />
             <main className="min-h-[calc(100vh-4rem)] container mx-auto px-4">
