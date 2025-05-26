@@ -57,6 +57,16 @@ export function Navbar() {
                 >
                   דשבורד
                 </Link>
+                <Link
+                  href="/products"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium mx-2 ${
+                    pathname === "/products"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                  }`}
+                >
+                  מוצרים
+                </Link>
               </div>
             </div>
             <div className="flex items-center">
@@ -140,6 +150,16 @@ export function Navbar() {
                 }`}
               >
                 דשבורד
+              </Link>
+              <Link
+                href="/products"
+                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                  pathname === "/products"
+                    ? "bg-indigo-50 border-primary text-primary"
+                    : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                }`}
+              >
+                מוצרים
               </Link>
             </div>
           </div>

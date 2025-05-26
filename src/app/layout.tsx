@@ -41,7 +41,7 @@ export default function RootLayout({
             </main>
 
             <AccessibilityControls />
-            <Toaster />
+            <Toaster richColors />
           </AccessibilityProvider>
         </body>
       </html>
