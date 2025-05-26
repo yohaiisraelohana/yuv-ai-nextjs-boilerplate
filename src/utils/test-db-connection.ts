@@ -1,4 +1,4 @@
-import { connectToDatabase } from '@/lib/mongodb';
+import { connectToDatabase } from "@/lib/mongodb";
 
 /**
  * Tests the MongoDB connection
@@ -7,34 +7,39 @@ import { connectToDatabase } from '@/lib/mongodb';
 export async function testMongoDbConnection() {
   try {
     const mongoose = await connectToDatabase();
-    
+
     // Check connection state
     if (mongoose.connection.readyState === 1) {
       return {
         success: true,
-        message: 'Successfully connected to MongoDB',
+        message: "Successfully connected to MongoDB",
         details: {
           host: mongoose.connection.host,
           name: mongoose.connection.name,
           models: Object.keys(mongoose.models),
-          readyState: 'Connected'
-        }
+          readyState: "Connected",
+        },
       };
     } else {
-      const states = ['Disconnected', 'Connected', 'Connecting', 'Disconnecting'];
+      const states = [
+        "Disconnected",
+        "Connected",
+        "Connecting",
+        "Disconnecting",
+      ];
       return {
         success: false,
-        message: 'Not connected to MongoDB',
+        message: "Not connected to MongoDB",
         details: {
-          readyState: states[mongoose.connection.readyState] || 'Unknown'
-        }
+          readyState: states[mongoose.connection.readyState] || "Unknown",
+        },
       };
     }
   } catch (error: any) {
     return {
       success: false,
-      message: 'Failed to connect to MongoDB',
-      error: error.message
+      message: "Failed to connect to MongoDB",
+      error: error.message,
     };
   }
-} 
+}

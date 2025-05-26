@@ -1,16 +1,20 @@
 /** @type {import('next').NextConfig} */
 
-const withBundleAnalyzer = process.env.ANALYZE === 'true'
-  ? require('@next/bundle-analyzer')({
-      enabled: true,
-    })
-  : (config) => config;
+const withBundleAnalyzer =
+  process.env.ANALYZE === "true"
+    ? require("@next/bundle-analyzer")({
+        enabled: true,
+      })
+    : (config) => config;
 
 const nextConfig = {
+  env: {
+    MONGODB_URI: process.env.MONGODB_URI,
+  },
   reactStrictMode: true,
   images: {
     domains: [
-      'img.clerk.com', // For Clerk user images
+      "img.clerk.com", // For Clerk user images
     ],
   },
   // Enable SWC minification
@@ -19,8 +23,8 @@ const nextConfig = {
     // Enables emotion for styled components
     emotion: false,
     // Remove console.log in production
-    removeConsole: process.env.NODE_ENV === 'production',
+    removeConsole: process.env.NODE_ENV === "production",
   },
 };
 
-module.exports = withBundleAnalyzer(nextConfig); 
+module.exports = withBundleAnalyzer(nextConfig);

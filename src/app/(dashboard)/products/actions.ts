@@ -1,6 +1,6 @@
 "use server";
 
-import { connectToDatabase } from "@/lib/mongoose";
+import { connectToDatabase } from "@/lib/mongodb";
 import Product from "@/models/Product";
 
 export async function getProducts() {

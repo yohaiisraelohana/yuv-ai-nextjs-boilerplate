@@ -1,23 +1,25 @@
 import mongoose from "mongoose";
 
 const MONGODB_URI = process.env.MONGODB_URI;
-
+console.log("MONGODB_URI:", MONGODB_URI ? "Found" : "Not found");
 if (!MONGODB_URI) {
   throw new Error(
-    "Please define the MONGODB_URI environment variable inside .env"
+    "Please define the MONGODB_URI environment variable inside .env.local"
   );
 }
 
-interface MongooseCache {
+// Define the cached type
+interface Cached {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 }
 
+// Add the mongoose property to global
 declare global {
-  var mongoose: MongooseCache | undefined;
+  var mongoose: Cached | undefined;
 }
 
-let cached: MongooseCache = global.mongoose || { conn: null, promise: null };
+let cached: Cached = global.mongoose || { conn: null, promise: null };
 
 if (!global.mongoose) {
   global.mongoose = cached;
