@@ -87,6 +87,16 @@ export function Navbar() {
                 >
                   הצעות מחיר
                 </Link>
+                <Link
+                  href="/quotesTemplate"
+                  className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium mx-2 ${
+                    pathname === "/quotesTemplate"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
+                  }`}
+                >
+                  תבניות
+                </Link>
               </div>
             </div>
             <div className="flex items-center">
@@ -200,6 +210,16 @@ export function Navbar() {
                 }`}
               >
                 הצעות מחיר
+              </Link>
+              <Link
+                href="/quotesTemplate"
+                className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
+                  pathname === "/quotesTemplate"
+                    ? "bg-indigo-50 border-primary text-primary"
+                    : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
+                }`}
+              >
+                תבניות
               </Link>
             </div>
           </div>
