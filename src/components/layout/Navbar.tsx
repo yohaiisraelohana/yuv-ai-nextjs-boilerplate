@@ -1,11 +1,11 @@
-'use client';
+"use client";
 
-import * as React from 'react';
-import Link from 'next/link';
-import { usePathname } from 'next/navigation';
-import { UserButton, useUser } from '@clerk/nextjs';
-import { ThemeToggle } from '@/components/ui/theme-toggle';
-import { Menu, X, Sparkles } from 'lucide-react';
+import * as React from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { UserButton, useUser } from "@clerk/nextjs";
+import { ThemeToggle } from "@/components/ui/theme-toggle";
+import { Menu, X, Sparkles } from "lucide-react";
 
 interface ErrorBoundaryProps {
   children: React.ReactNode;
@@ -27,31 +27,22 @@ export function Navbar() {
 
   return (
     <>
-      {/* Animated Banner */}
-      <div className="animated-banner w-full text-center relative overflow-hidden">
-        <div className="max-w-7xl mx-auto px-4 flex items-center justify-center gap-2 text-white font-medium">
-          <Sparkles className="h-4 w-4" />
-          <p className="text-sm">
-            {isSignedIn ? `Welcome ${user?.firstName || 'back'}! Fly High With YUV.AI` : 'Welcome to YUV.AI Boilerplate - Fly High With YUV.AI'}
-          </p>
-          <Sparkles className="h-4 w-4" />
-        </div>
-      </div>
-      
       <nav className="sticky top-0 z-50 bg-background/80 backdrop-blur-md border-b glass-blur-gradient">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between h-16">
             <div className="flex">
               <Link href="/" className="flex-shrink-0 flex items-center">
-                <span className="text-xl font-bold glass-headline">YUV.AI</span>
+                <span className="text-xl font-bold glass-headline">
+                  Quotes Manager
+                </span>
               </Link>
               <div className="hidden lg:ml-6 lg:flex lg:space-x-8">
                 <Link
                   href="/"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium glass-shimmer ${
-                    pathname === '/'
-                      ? 'border-primary text-foreground'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                    pathname === "/"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
                   }`}
                 >
                   Home
@@ -59,9 +50,9 @@ export function Navbar() {
                 <Link
                   href="/dashboard"
                   className={`inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium glass-shimmer ${
-                    pathname === '/dashboard'
-                      ? 'border-primary text-foreground'
-                      : 'border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300'
+                    pathname === "/dashboard"
+                      ? "border-primary text-foreground"
+                      : "border-transparent text-muted-foreground hover:text-foreground hover:border-gray-300"
                   }`}
                 >
                   Dashboard
@@ -133,9 +124,9 @@ export function Navbar() {
               <Link
                 href="/"
                 className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                  pathname === '/'
-                    ? 'bg-indigo-50 border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+                  pathname === "/"
+                    ? "bg-indigo-50 border-primary text-primary"
+                    : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
                 }`}
               >
                 Home
@@ -143,9 +134,9 @@ export function Navbar() {
               <Link
                 href="/dashboard"
                 className={`block pl-3 pr-4 py-2 border-l-4 text-base font-medium ${
-                  pathname === '/dashboard'
-                    ? 'bg-indigo-50 border-primary text-primary'
-                    : 'border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800'
+                  pathname === "/dashboard"
+                    ? "bg-indigo-50 border-primary text-primary"
+                    : "border-transparent text-gray-600 hover:bg-gray-50 hover:border-gray-300 hover:text-gray-800"
                 }`}
               >
                 Dashboard
@@ -158,7 +149,10 @@ export function Navbar() {
   );
 }
 
-class CustomErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class CustomErrorBoundary extends React.Component<
+  ErrorBoundaryProps,
+  ErrorBoundaryState
+> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { hasError: false, error: null };
@@ -185,4 +179,4 @@ class CustomErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBound
 
     return this.props.children;
   }
-} 
+}
