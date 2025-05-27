@@ -3,7 +3,8 @@
 import { connectToDatabase } from "@/lib/mongodb";
 import QuoteTemplate from "@/models/QuoteTemplate";
 import Company from "@/models/Company";
-import { PDFDocument, rgb } from "pdf-lib";
+import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
+import fontkit from "@pdf-lib/fontkit";
 
 interface TemplateVariable {
   name: string;
@@ -90,14 +91,26 @@ export async function generateQuotePDF(templateId: string, data: any) {
 
     // Create a new PDF document
     const pdfDoc = await PDFDocument.create();
+    pdfDoc.registerFontkit(fontkit);
     const page = pdfDoc.addPage([595.28, 841.89]); // A4 size
     const { width, height } = page.getSize();
 
-    // Load Hebrew font
-    const fontBytes = await fetch("/fonts/Heebo-Regular.ttf").then((res) =>
-      res.arrayBuffer()
-    );
-    const hebrewFont = await pdfDoc.embedFont(fontBytes);
+    // Load Hebrew font with fallback
+    let hebrewFont;
+    try {
+      // Try to load from public directory first
+      const fontUrl = `${process.env.NEXT_PUBLIC_APP_URL || ""}/fonts/Heebo-Regular.ttf`;
+      console.log("Loading font from:", fontUrl);
+      const fontResponse = await fetch(fontUrl);
+      if (!fontResponse.ok) {
+        throw new Error("Failed to load font from public directory");
+      }
+      const fontBytes = await fontResponse.arrayBuffer();
+      hebrewFont = await pdfDoc.embedFont(fontBytes);
+    } catch (error) {
+      console.warn("Failed to load custom font:", error);
+      throw new Error("Hebrew font is required for PDF generation");
+    }
 
     // Add company logo if available
     if (company.logo) {
