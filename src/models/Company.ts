@@ -1,4 +1,4 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose, { Schema } from "mongoose";
 
 const companySchema = new Schema(
   {
@@ -38,7 +38,6 @@ const companySchema = new Schema(
       email: {
         type: String,
         required: [true, "אימייל הוא שדה חובה"],
-        trim: true,
         lowercase: true,
         match: [/^\S+@\S+\.\S+$/, "אנא הכנס כתובת אימייל תקינה"],
       },
@@ -83,5 +82,8 @@ const companySchema = new Schema(
 // Create compound index for name and taxId
 companySchema.index({ name: 1, taxId: 1 });
 
-const Company = models.Company || mongoose.model("Company", companySchema);
+// Check if the model exists before creating a new one
+const Company =
+  mongoose.models.Company || mongoose.model("Company", companySchema);
+
 export default Company;
