@@ -19,9 +19,15 @@ export async function getQuotes() {
   }
 }
 
+async function generateQuoteNumber() {
+  const count = await Quote.countDocuments();
+  return `Q${count + 1}`;
+}
+
 export async function createQuote(data: {
   type: "שירותים" | "סדנאות" | "מוצרים";
   customer: { _id: string; name: string };
+  template: { _id: string; title: string };
   validUntil: Date;
   items: Array<{
     product: { _id: string; name: string; price: number };
@@ -34,19 +40,12 @@ export async function createQuote(data: {
 }) {
   try {
     await connectToDatabase();
-
-    const count = await Quote.countDocuments();
-    const quoteNumber = `Q${count + 1}`;
-
-    if (!data.customer || !data.customer._id) {
-      throw new Error("Customer is required.");
-    }
-
+    const quoteNumber = await generateQuoteNumber();
     const quote = await Quote.create({
       ...data,
       quoteNumber,
+      status: "טיוטה",
     });
-    revalidatePath("/quotes");
     return { quote: JSON.parse(JSON.stringify(quote)) };
   } catch (error) {
     console.error("Error creating quote:", error);
@@ -59,6 +58,7 @@ export async function updateQuote(
   data: {
     type: "שירותים" | "סדנאות" | "מוצרים";
     customer: { _id: string; name: string };
+    template: { _id: string; title: string };
     validUntil: Date;
     items: Array<{
       product: { _id: string; name: string; price: number };
@@ -72,11 +72,9 @@ export async function updateQuote(
 ) {
   try {
     await connectToDatabase();
-    if (!data.customer || !data.customer._id) {
-      throw new Error("Customer is required.");
-    }
-    const quote = await Quote.findByIdAndUpdate(id, data, { new: true });
-    revalidatePath("/quotes");
+    const quote = await Quote.findByIdAndUpdate(id, data, {
+      new: true,
+    });
     return { quote: JSON.parse(JSON.stringify(quote)) };
   } catch (error) {
     console.error("Error updating quote:", error);

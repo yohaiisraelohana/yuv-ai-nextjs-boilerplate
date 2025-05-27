@@ -1,12 +1,14 @@
 import { currentUser } from "@clerk/nextjs/server";
 import { redirect } from "next/navigation";
-import Quote from "@/models/Quote";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { Types } from "mongoose";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { QuotesTable } from "./components/QuotesTable";
 import { connectToDatabase } from "@/lib/mongodb";
+import Quote from "@/models/Quote";
+import Customer from "@/models/Customer";
+import QuoteTemplate from "@/models/QuoteTemplate";
 
 type QuoteType = {
   _id: string;
@@ -23,6 +25,7 @@ type QuoteType = {
     discount: number;
   }>;
   notes?: string;
+  template: { _id: string; title: string };
 };
 
 type MongoQuote = {
@@ -43,6 +46,7 @@ type MongoQuote = {
   notes?: string;
   createdAt: Date;
   updatedAt: Date;
+  template: Types.ObjectId;
 };
 
 async function getQuotes() {
@@ -50,6 +54,7 @@ async function getQuotes() {
     await connectToDatabase();
     const quotes = await Quote.find()
       .populate("customer", "name")
+      .populate("template", "title")
       .sort({ createdAt: -1 })
       .lean();
 
@@ -59,6 +64,10 @@ async function getQuotes() {
       customer: {
         _id: quote.customer._id.toString(),
         name: quote.customer.name,
+      },
+      template: {
+        _id: quote.template._id.toString(),
+        title: quote.template.title,
       },
       items: quote.items.map((item: any) => ({
         ...item,

@@ -4,7 +4,7 @@ const quoteSchema = new Schema(
   {
     quoteNumber: {
       type: String,
-      required: true,
+      required: [true, "מספר הצעה הוא שדה חובה"],
       unique: true,
       index: true,
     },
@@ -18,7 +18,6 @@ const quoteSchema = new Schema(
       type: Schema.Types.ObjectId,
       ref: "Customer",
       required: [true, "לקוח הוא שדה חובה"],
-      index: true,
     },
     items: [
       {
@@ -41,13 +40,12 @@ const quoteSchema = new Schema(
           type: Number,
           default: 0,
           min: [0, "הנחה לא יכולה להיות שלילית"],
-          max: [100, "הנחה לא יכולה להיות גדולה מ-100%"],
         },
       },
     ],
     status: {
       type: String,
-      required: true,
+      required: [true, "סטטוס הוא שדה חובה"],
       enum: ["טיוטה", "נשלחה", "מאושרת", "נדחתה", "פג תוקף"],
       default: "טיוטה",
       index: true,
@@ -58,12 +56,17 @@ const quoteSchema = new Schema(
     },
     totalAmount: {
       type: Number,
-      required: true,
+      required: [true, "סכום כולל הוא שדה חובה"],
       min: [0, "סכום כולל לא יכול להיות שלילי"],
     },
     notes: {
       type: String,
       trim: true,
+    },
+    template: {
+      type: Schema.Types.ObjectId,
+      ref: "QuoteTemplate",
+      required: [true, "תבנית היא שדה חובה"],
     },
   },
   {

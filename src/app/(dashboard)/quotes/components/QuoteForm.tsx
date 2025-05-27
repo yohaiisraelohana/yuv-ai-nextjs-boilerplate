@@ -51,11 +51,21 @@ import { Badge } from "@/components/ui/badge";
 import { getProducts } from "../../products/actions";
 import { createQuote, updateQuote } from "../actions";
 import { getCustomers } from "../../customers/actions";
+import { getQuoteTemplates } from "../../quotesTemplate/actions";
 
 const quoteSchema = z.object({
   type: z.enum(["שירותים", "סדנאות", "מוצרים"], {
     required_error: "סוג ההצעה הוא שדה חובה",
   }),
+  template: z.object(
+    {
+      _id: z.string().min(1, "תבנית היא שדה חובה"),
+      title: z.string(),
+    },
+    {
+      required_error: "תבנית היא שדה חובה",
+    }
+  ),
   customer: z.object(
     {
       _id: z.string().min(1, "לקוח הוא שדה חובה"),
@@ -103,6 +113,7 @@ interface QuoteFormProps {
       discount: number;
     }>;
     notes?: string;
+    template: { _id: string; title: string };
   };
   onSubmit: (data: QuoteFormValues & { totalAmount: number }) => Promise<void>;
   trigger?: React.ReactNode;
@@ -116,6 +127,9 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
   const [products, setProducts] = useState<
     Array<{ _id: string; name: string; price: number }>
   >([]);
+  const [templates, setTemplates] = useState<
+    Array<{ _id: string; title: string; type: string }>
+  >([]);
   const [searchCustomer, setSearchCustomer] = useState("");
   const [searchProduct, setSearchProduct] = useState("");
 
@@ -123,6 +137,7 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
     resolver: zodResolver(quoteSchema),
     defaultValues: {
       type: quote?.type || "מוצרים",
+      template: quote?.template || { _id: "", title: "" },
       customer: quote?.customer || { _id: "", name: "" },
       validUntil: quote?.validUntil
         ? new Date(quote.validUntil)
@@ -147,13 +162,14 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
     name: "items",
   });
 
-  // Fetch customers and products
+  // Fetch customers, products and templates
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [productsData, customersData] = await Promise.all([
+        const [productsData, customersData, templatesData] = await Promise.all([
           getProducts(),
           getCustomers(),
+          getQuoteTemplates(),
         ]);
 
         if (productsData.products) {
@@ -175,7 +191,17 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
           );
         }
 
-        // If editing an existing quote, ensure customer is set
+        if (templatesData.templates) {
+          setTemplates(
+            templatesData.templates.map((t: any) => ({
+              _id: t._id,
+              title: t.title,
+              type: t.type,
+            }))
+          );
+        }
+
+        // If editing an existing quote, ensure customer and template are set
         if (quote?.customer) {
           const customer = customersData.find(
             (c: any) => c._id === quote.customer._id
@@ -184,6 +210,18 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
             form.setValue("customer", {
               _id: customer._id,
               name: customer.name,
+            });
+          }
+        }
+
+        if (quote?.template) {
+          const template = templatesData.templates.find(
+            (t: any) => t._id === quote.template._id
+          );
+          if (template) {
+            form.setValue("template", {
+              _id: template._id,
+              title: template.title,
             });
           }
         }
@@ -256,7 +294,19 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
                   <FormItem>
                     <FormLabel>סוג הצעה</FormLabel>
                     <Select
-                      onValueChange={field.onChange}
+                      onValueChange={(value) => {
+                        field.onChange(value);
+                        // Filter templates based on selected type
+                        const filteredTemplates = templates.filter(
+                          (t) => t.type === value
+                        );
+                        if (filteredTemplates.length > 0) {
+                          form.setValue("template", {
+                            _id: filteredTemplates[0]._id,
+                            title: filteredTemplates[0].title,
+                          });
+                        }
+                      }}
                       defaultValue={field.value}
                     >
                       <FormControl>
@@ -268,6 +318,46 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
                         <SelectItem value="שירותים">שירותים</SelectItem>
                         <SelectItem value="סדנאות">סדנאות</SelectItem>
                         <SelectItem value="מוצרים">מוצרים</SelectItem>
+                      </SelectContent>
+                    </Select>
+                    <FormMessage />
+                  </FormItem>
+                )}
+              />
+
+              <FormField
+                control={form.control}
+                name="template"
+                render={({ field }) => (
+                  <FormItem>
+                    <FormLabel>תבנית</FormLabel>
+                    <Select
+                      value={field.value._id || ""}
+                      onValueChange={(templateId) => {
+                        const selectedTemplate = templates.find(
+                          (t) => t._id === templateId
+                        );
+                        if (selectedTemplate) {
+                          form.setValue("template", {
+                            _id: selectedTemplate._id,
+                            title: selectedTemplate.title,
+                          });
+                        }
+                      }}
+                    >
+                      <FormControl>
+                        <SelectTrigger>
+                          <SelectValue placeholder="בחר תבנית" />
+                        </SelectTrigger>
+                      </FormControl>
+                      <SelectContent>
+                        {templates
+                          .filter((t) => t.type === form.getValues("type"))
+                          .map((template) => (
+                            <SelectItem key={template._id} value={template._id}>
+                              {template.title}
+                            </SelectItem>
+                          ))}
                       </SelectContent>
                     </Select>
                     <FormMessage />

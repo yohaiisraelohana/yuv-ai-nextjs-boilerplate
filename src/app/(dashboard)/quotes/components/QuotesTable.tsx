@@ -40,6 +40,7 @@ interface Quote {
   quoteNumber: string;
   type: "שירותים" | "סדנאות" | "מוצרים";
   customer: { _id: string; name: string };
+  template: { _id: string; title: string };
   validUntil: Date;
   totalAmount: number;
   status: "טיוטה" | "נשלחה" | "מאושרת" | "נדחתה" | "פג תוקף";
@@ -223,7 +224,13 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
               </TableCell>
               <TableCell>
                 <div className="flex gap-2">
-                  <Button variant="ghost" size="icon">
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() =>
+                      window.open(`/dashboard/quotes/${quote._id}`, "_blank")
+                    }
+                  >
                     <Eye className="h-4 w-4" />
                   </Button>
                   <QuoteForm
