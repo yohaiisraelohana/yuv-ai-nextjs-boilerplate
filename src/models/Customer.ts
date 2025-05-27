@@ -1,12 +1,11 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose from "mongoose";
 
-const customerSchema = new Schema(
+const customerSchema = new mongoose.Schema(
   {
     name: {
       type: String,
       required: [true, "שם הלקוח הוא שדה חובה"],
       trim: true,
-      index: true,
     },
     email: {
       type: String,
@@ -14,20 +13,17 @@ const customerSchema = new Schema(
       unique: true,
       trim: true,
       lowercase: true,
-      index: true,
       match: [/^\S+@\S+\.\S+$/, "אנא הכנס כתובת אימייל תקינה"],
     },
     phone: {
       type: String,
       required: [true, "מספר טלפון הוא שדה חובה"],
       trim: true,
-      index: true,
     },
     company: {
       type: String,
       required: [true, "שם החברה הוא שדה חובה"],
       trim: true,
-      index: true,
     },
     address: {
       street: {
@@ -52,8 +48,11 @@ const customerSchema = new Schema(
   }
 );
 
-// Create compound index for company and name
+// Create indexes
+customerSchema.index({ email: 1 });
+customerSchema.index({ company: 1 });
 customerSchema.index({ company: 1, name: 1 });
 
-const Customer = models.Customer || mongoose.model("Customer", customerSchema);
+const Customer =
+  mongoose.models.Customer || mongoose.model("Customer", customerSchema);
 export default Customer;

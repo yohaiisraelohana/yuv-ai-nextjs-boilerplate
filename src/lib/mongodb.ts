@@ -1,28 +1,24 @@
 import mongoose from "mongoose";
 
-const MONGODB_URI = process.env.MONGODB_URI;
-console.log("MONGODB_URI:", MONGODB_URI ? "Found" : "Not found");
-if (!MONGODB_URI) {
-  throw new Error(
-    "Please define the MONGODB_URI environment variable inside .env.local"
-  );
+if (!process.env.MONGODB_URI) {
+  throw new Error('Invalid/Missing environment variable: "MONGODB_URI"');
 }
 
-// Define the cached type
+const uri = process.env.MONGODB_URI;
+
 interface Cached {
   conn: typeof mongoose | null;
   promise: Promise<typeof mongoose> | null;
 }
 
-// Add the mongoose property to global
 declare global {
-  var mongoose: Cached | undefined;
+  var mongoose: Cached;
 }
 
-let cached: Cached = global.mongoose || { conn: null, promise: null };
+let cached = global.mongoose;
 
-if (!global.mongoose) {
-  global.mongoose = cached;
+if (!cached) {
+  cached = global.mongoose = { conn: null, promise: null };
 }
 
 export async function connectToDatabase() {
@@ -35,7 +31,7 @@ export async function connectToDatabase() {
       bufferCommands: false,
     };
 
-    cached.promise = mongoose.connect(MONGODB_URI!, opts).then((mongoose) => {
+    cached.promise = mongoose.connect(uri, opts).then((mongoose) => {
       return mongoose;
     });
   }

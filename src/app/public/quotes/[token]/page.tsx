@@ -1,18 +1,15 @@
-import { currentUser } from "@clerk/nextjs/server";
-import { redirect } from "next/navigation";
 import { connectToDatabase } from "@/lib/mongodb";
 import Quote from "@/models/Quote";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Button } from "@/components/ui/button";
-import { toast } from "sonner";
-import { CopyLinkButton } from "./CopyLinkButton";
+import { cookies } from "next/headers";
+import { SignQuoteForm } from "./SignQuoteForm";
 
-async function getQuote(id: string) {
+async function getQuote(token: string) {
   try {
     await connectToDatabase();
-    const quote = await Quote.findById(id)
+    const quote = await Quote.findOne({ publicToken: token })
       .populate("customer", "name email phone company")
       .populate("template", "title content")
       .populate("items.product", "name price")
@@ -53,7 +50,7 @@ async function getQuote(id: string) {
       validUntil: new Date((quote as any).validUntil),
       totalAmount: (quote as any).totalAmount,
       notes: (quote as any).notes,
-      publicToken: (quote as any).publicToken,
+      emailVerified: (quote as any).emailVerified,
       signature: (quote as any).signature,
       signedAt: (quote as any).signedAt,
     };
@@ -63,19 +60,13 @@ async function getQuote(id: string) {
   }
 }
 
-export default async function QuotePage({
+export default async function PublicQuotePage({
   params,
 }: {
-  params: Promise<{ id: string }>;
+  params: Promise<{ token: string }>;
 }) {
-  const user = await currentUser();
-
-  if (!user) {
-    redirect("/sign-in");
-  }
-
-  const { id } = await params;
-  const quote = await getQuote(id);
+  const { token } = await params;
+  const quote = await getQuote(token);
 
   if (!quote) {
     return (
@@ -89,12 +80,33 @@ export default async function QuotePage({
     );
   }
 
+  const cookieStore = await cookies();
+  const verifiedEmail = cookieStore.get(`quote_${token}_verified`)?.value;
+
+  if (!quote.emailVerified && !verifiedEmail) {
+    return (
+      <div className="py-10">
+        <Card>
+          <CardHeader>
+            <CardTitle>אימות אימייל</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <SignQuoteForm
+              quoteId={quote._id}
+              customerEmail={quote.customer.email}
+              quote={quote}
+            />
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   return (
     <div className="py-10">
       <Card>
-        <CardHeader className="flex flex-row items-center justify-between">
+        <CardHeader>
           <CardTitle>הצעת מחיר #{quote.quoteNumber}</CardTitle>
-          <CopyLinkButton quoteId={quote._id} publicToken={quote.publicToken} />
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -162,28 +174,6 @@ export default async function QuotePage({
               </div>
             )}
 
-            {quote.signature && (
-              <div>
-                <h3 className="font-semibold mb-2">חתימת לקוח</h3>
-                <p>חתום על ידי: {quote.customer.name}</p>
-                {quote.signedAt && (
-                  <p>
-                    תאריך:{" "}
-                    {format(new Date(quote.signedAt), "dd/MM/yyyy HH:mm", {
-                      locale: he,
-                    })}
-                  </p>
-                )}
-                <div className="mt-2">
-                  <img
-                    src={quote.signature}
-                    alt="חתימת לקוח"
-                    className="max-w-xs border rounded"
-                  />
-                </div>
-              </div>
-            )}
-
             <div>
               <h3 className="font-semibold mb-2">תבנית</h3>
               <p className="font-medium">{quote.template.title}</p>
@@ -191,6 +181,41 @@ export default async function QuotePage({
                 {quote.template.content}
               </p>
             </div>
+
+            {quote.signature && (
+              <div>
+                <h3 className="font-semibold mb-2">חתימה</h3>
+                <p>חתום על ידי: {quote.customer.name}</p>
+                <p>
+                  תאריך:{" "}
+                  {format(new Date(quote.signedAt), "dd/MM/yyyy HH:mm", {
+                    locale: he,
+                  })}
+                </p>
+                <div className="mt-2">
+                  <img
+                    src={quote.signature}
+                    alt="חתימה"
+                    className="max-w-xs border rounded"
+                  />
+                </div>
+              </div>
+            )}
+
+            {!quote.signature && (
+              <div>
+                <h3 className="font-semibold mb-2">אישור הצעה</h3>
+                <p className="mb-4">
+                  אנא חתום על ההצעה כדי לאשר אותה. לאחר החתימה, ההצעה תועבר
+                  לאישור סופי.
+                </p>
+                <SignQuoteForm
+                  quoteId={quote._id}
+                  customerEmail={quote.customer.email}
+                  quote={quote}
+                />
+              </div>
+            )}
           </div>
         </CardContent>
       </Card>

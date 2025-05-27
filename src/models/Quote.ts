@@ -1,72 +1,89 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose from "mongoose";
 
-const quoteSchema = new Schema(
+const quoteSchema = new mongoose.Schema(
   {
     quoteNumber: {
       type: String,
-      required: [true, "מספר הצעה הוא שדה חובה"],
+      required: true,
       unique: true,
-      index: true,
     },
     type: {
       type: String,
-      required: [true, "סוג ההצעה הוא שדה חובה"],
-      enum: ["שירותים", "סדנאות", "מוצרים"],
-      index: true,
+      required: true,
+      enum: ["הצעה", "הזמנה"],
     },
     customer: {
-      type: Schema.Types.ObjectId,
+      type: mongoose.Schema.Types.ObjectId,
       ref: "Customer",
-      required: [true, "לקוח הוא שדה חובה"],
+      required: true,
+    },
+    template: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Template",
+      required: true,
     },
     items: [
       {
         product: {
-          type: Schema.Types.ObjectId,
+          type: mongoose.Schema.Types.ObjectId,
           ref: "Product",
           required: true,
         },
         quantity: {
           type: Number,
           required: true,
-          min: [1, "כמות חייבת להיות לפחות 1"],
+          min: 1,
         },
         price: {
           type: Number,
           required: true,
-          min: [0, "מחיר לא יכול להיות שלילי"],
+          min: 0,
         },
         discount: {
           type: Number,
           default: 0,
-          min: [0, "הנחה לא יכולה להיות שלילית"],
+          min: 0,
+          max: 100,
         },
       },
     ],
     status: {
       type: String,
-      required: [true, "סטטוס הוא שדה חובה"],
-      enum: ["טיוטה", "נשלחה", "מאושרת", "נדחתה", "פג תוקף"],
+      required: true,
+      enum: ["טיוטה", "נשלחה", "ממתין לאישור", "מאושרת", "נדחתה", "חתומה"],
       default: "טיוטה",
-      index: true,
     },
     validUntil: {
       type: Date,
-      required: [true, "תוקף ההצעה הוא שדה חובה"],
+      required: true,
     },
     totalAmount: {
       type: Number,
-      required: [true, "סכום כולל הוא שדה חובה"],
-      min: [0, "סכום כולל לא יכול להיות שלילי"],
+      required: true,
+      min: 0,
     },
     notes: {
       type: String,
-      trim: true,
     },
-    template: {
-      type: Schema.Types.ObjectId,
-      ref: "QuoteTemplate",
-      required: [true, "תבנית היא שדה חובה"],
+    publicToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    emailVerificationToken: {
+      type: String,
+      unique: true,
+      sparse: true,
+    },
+    emailVerified: {
+      type: Boolean,
+      default: false,
+    },
+    signature: {
+      type: String,
+    },
+    signatureDate: {
+      type: Date,
     },
   },
   {
@@ -74,10 +91,11 @@ const quoteSchema = new Schema(
   }
 );
 
-// Create compound indexes for common queries
-quoteSchema.index({ customer: 1, status: 1 });
-quoteSchema.index({ type: 1, status: 1 });
+// Create compound indexes
+quoteSchema.index({ customer: 1, createdAt: -1 });
+quoteSchema.index({ status: 1, createdAt: -1 });
 quoteSchema.index({ validUntil: 1, status: 1 });
 
-const Quote = models.Quote || mongoose.model("Quote", quoteSchema);
+const Quote = mongoose.models.Quote || mongoose.model("Quote", quoteSchema);
+
 export default Quote;
