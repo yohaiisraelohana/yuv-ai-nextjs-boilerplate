@@ -192,6 +192,7 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
         }
 
         if (templatesData.templates) {
+          console.log("Loaded templates:", templatesData.templates);
           setTemplates(
             templatesData.templates.map((t: any) => ({
               _id: t._id,
@@ -328,41 +329,48 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
               <FormField
                 control={form.control}
                 name="template"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>תבנית</FormLabel>
-                    <Select
-                      value={field.value._id || ""}
-                      onValueChange={(templateId) => {
-                        const selectedTemplate = templates.find(
-                          (t) => t._id === templateId
-                        );
-                        if (selectedTemplate) {
-                          form.setValue("template", {
-                            _id: selectedTemplate._id,
-                            title: selectedTemplate.title,
-                          });
-                        }
-                      }}
-                    >
-                      <FormControl>
-                        <SelectTrigger>
-                          <SelectValue placeholder="בחר תבנית" />
-                        </SelectTrigger>
-                      </FormControl>
-                      <SelectContent>
-                        {templates
-                          .filter((t) => t.type === form.getValues("type"))
-                          .map((template) => (
+                render={({ field }) => {
+                  const selectedType = form.getValues("type");
+                  const filteredTemplates = templates.filter(
+                    (t) => t.type === selectedType
+                  );
+                  console.log("Selected type:", selectedType);
+                  console.log("Filtered templates:", filteredTemplates);
+
+                  return (
+                    <FormItem>
+                      <FormLabel>תבנית</FormLabel>
+                      <Select
+                        value={field.value._id || ""}
+                        onValueChange={(templateId) => {
+                          const selectedTemplate = templates.find(
+                            (t) => t._id === templateId
+                          );
+                          if (selectedTemplate) {
+                            form.setValue("template", {
+                              _id: selectedTemplate._id,
+                              title: selectedTemplate.title,
+                            });
+                          }
+                        }}
+                      >
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="בחר תבנית" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {filteredTemplates.map((template) => (
                             <SelectItem key={template._id} value={template._id}>
                               {template.title}
                             </SelectItem>
                           ))}
-                      </SelectContent>
-                    </Select>
-                    <FormMessage />
-                  </FormItem>
-                )}
+                        </SelectContent>
+                      </Select>
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
               />
 
               <FormField
