@@ -35,6 +35,7 @@ import { QuoteTemplatePreview } from "./QuoteTemplatePreview";
 import { deleteQuoteTemplate } from "../actions";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
 
 interface QuoteTemplate {
   _id: string;
@@ -55,6 +56,7 @@ export function QuoteTemplatesTable({
   const [filteredTemplates, setFilteredTemplates] = useState(initialTemplates);
   const [searchTerm, setSearchTerm] = useState("");
   const [typeFilter, setTypeFilter] = useState<string>("");
+  const router = useRouter();
 
   useEffect(() => {
     let filtered = initialTemplates;
@@ -67,7 +69,7 @@ export function QuoteTemplatesTable({
       );
     }
 
-    if (typeFilter) {
+    if (typeFilter && typeFilter !== "all") {
       filtered = filtered.filter((template) => template.type === typeFilter);
     }
 
@@ -76,8 +78,12 @@ export function QuoteTemplatesTable({
 
   const handleDelete = async (id: string) => {
     try {
-      await deleteQuoteTemplate(id);
+      const result = await deleteQuoteTemplate(id);
+      if (result.error) {
+        throw new Error(result.error);
+      }
       toast.success("התבנית נמחקה בהצלחה");
+      router.refresh();
     } catch (error) {
       toast.error("אירעה שגיאה במחיקת התבנית");
     }
@@ -97,7 +103,7 @@ export function QuoteTemplatesTable({
             <SelectValue placeholder="סוג תבנית" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="">הכל</SelectItem>
+            <SelectItem value="all">הכל</SelectItem>
             <SelectItem value="שירותים">שירותים</SelectItem>
             <SelectItem value="סדנאות">סדנאות</SelectItem>
             <SelectItem value="מוצרים">מוצרים</SelectItem>

@@ -68,7 +68,10 @@ export function QuoteTemplatePreview({ template }: QuoteTemplatePreviewProps) {
 
       toast.success("הקובץ נוצר בהצלחה");
     } catch (error) {
-      toast.error("אירעה שגיאה ביצירת הקובץ");
+      console.error("Error generating PDF:", error);
+      toast.error(
+        error instanceof Error ? error.message : "אירעה שגיאה ביצירת הקובץ"
+      );
     }
   };
 

@@ -32,6 +32,7 @@ import { useState } from "react";
 import { toast } from "sonner";
 import { Plus, Trash2 } from "lucide-react";
 import { createQuoteTemplate, updateQuoteTemplate } from "../actions";
+import { useRouter } from "next/navigation";
 
 const quoteTemplateSchema = z.object({
   type: z.enum(["שירותים", "סדנאות", "מוצרים"], {
@@ -69,6 +70,7 @@ export function QuoteTemplateForm({
   trigger,
 }: QuoteTemplateFormProps) {
   const [open, setOpen] = useState(false);
+  const router = useRouter();
 
   const form = useForm<QuoteTemplateFormValues>({
     resolver: zodResolver(quoteTemplateSchema),
@@ -88,14 +90,21 @@ export function QuoteTemplateForm({
   const handleSubmit = async (data: QuoteTemplateFormValues) => {
     try {
       if (mode === "create") {
-        await createQuoteTemplate(data);
+        const result = await createQuoteTemplate(data);
+        if (result.error) {
+          throw new Error(result.error);
+        }
         toast.success("התבנית נוצרה בהצלחה");
       } else if (template) {
-        await updateQuoteTemplate(template._id, data);
+        const result = await updateQuoteTemplate(template._id, data);
+        if (result.error) {
+          throw new Error(result.error);
+        }
         toast.success("התבנית עודכנה בהצלחה");
       }
       setOpen(false);
       form.reset();
+      router.refresh();
     } catch (error) {
       toast.error("אירעה שגיאה");
     }
