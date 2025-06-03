@@ -69,20 +69,23 @@ export async function updateQuoteTemplate(
 ) {
   try {
     await connectToDatabase();
-    const template = (await QuoteTemplate.findByIdAndUpdate(
+    const template = await QuoteTemplate.findByIdAndUpdate(
       id,
       { ...data },
-      { new: true }
-    ).lean()) as IQuoteTemplate | null;
+      { new: true, runValidators: true }
+    );
 
     if (!template) {
-      return { error: "שגיאה בעדכון התבנית" };
+      return { error: "התבנית לא נמצאה" };
     }
 
     revalidatePath("/quotesTemplate");
     return { success: true };
   } catch (error) {
     console.error("Error updating quote template:", error);
+    if (error instanceof Error) {
+      return { error: error.message };
+    }
     return { error: "שגיאה בעדכון התבנית" };
   }
 }
