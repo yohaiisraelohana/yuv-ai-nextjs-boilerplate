@@ -32,16 +32,15 @@ export function CopyLinkButton({ quoteId, publicToken }: CopyLinkButtonProps) {
         }
 
         const data = await response.json();
-        token = data.publicUrl;
-      } else {
-        // Use existing token to create URL
-        const baseUrl =
-          process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
-        token = `${baseUrl}/public/quotes/${token}`;
+        token = data.publicToken;
       }
 
+      // Create the full public URL
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || window.location.origin;
+      const publicUrl = `${baseUrl}/public/quotes/${token}`;
+
       // Copy to clipboard
-      await navigator.clipboard.writeText(token);
+      await navigator.clipboard.writeText(publicUrl);
       toast.success("הקישור הועתק ללוח");
     } catch (error) {
       toast.error("אירעה שגיאה ביצירת הקישור");

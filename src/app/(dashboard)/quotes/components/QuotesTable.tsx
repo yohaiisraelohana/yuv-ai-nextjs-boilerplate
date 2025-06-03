@@ -20,7 +20,7 @@ import {
 import { useEffect, useState } from "react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, Share2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -33,7 +33,11 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { QuoteForm } from "./QuoteForm";
-import { createQuote, deleteQuote, updateQuote } from "../actions"; // Assuming updateQuote and deleteQuote are also in actions file
+import { createQuote, deleteQuote, updateQuote } from "../actions";
+import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface Quote {
   _id: string;
@@ -58,147 +62,72 @@ interface QuotesTableProps {
 }
 
 export function QuotesTable({ initialQuotes }: QuotesTableProps) {
-  const [filteredQuotes, setFilteredQuotes] = useState(initialQuotes);
+  const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
   const [searchTerm, setSearchTerm] = useState("");
-  const [selectedType, setSelectedType] = useState("all");
-  const [selectedStatus, setSelectedStatus] = useState("all");
-  const [minAmount, setMinAmount] = useState("");
-  const [maxAmount, setMaxAmount] = useState("");
-  const [quotes, setQuotes] = useState(initialQuotes); // Add state to manage quotes locally
+  const [statusFilter, setStatusFilter] = useState<string>("all");
+  const router = useRouter();
 
-  // Update quotes state when initialQuotes prop changes
-  useEffect(() => {
-    setQuotes(initialQuotes);
-  }, [initialQuotes]);
-
-  useEffect(() => {
-    const filtered = quotes.filter((quote) => {
-      const matchesSearch = quote.quoteNumber
-        .toLowerCase()
-        .includes(searchTerm.toLowerCase());
-      const matchesType = selectedType === "all" || quote.type === selectedType;
-      const matchesStatus =
-        selectedStatus === "all" || quote.status === selectedStatus;
-      const matchesMinAmount =
-        !minAmount || quote.totalAmount >= Number(minAmount);
-      const matchesMaxAmount =
-        !maxAmount || quote.totalAmount <= Number(maxAmount);
-
-      return (
-        matchesSearch &&
-        matchesType &&
-        matchesStatus &&
-        matchesMinAmount &&
-        matchesMaxAmount
-      );
-    });
-
-    setFilteredQuotes(filtered);
-  }, [searchTerm, selectedType, selectedStatus, minAmount, maxAmount, quotes]);
-
-  const types = ["שירותים", "סדנאות", "מוצרים"];
-  const statuses = ["טיוטה", "נשלחה", "מאושרת", "נדחתה", "פג תוקף"];
-
-  const handleCreate = async (data: any) => {
+  const handleDelete = async (id: string) => {
     try {
-      const result = await createQuote(data);
-      if (result.quote) {
-        // Add the new quote to the local state and initialQuotes for filtering
-        setQuotes((prevQuotes) => [result.quote, ...prevQuotes]);
-      } else if (result.error) {
-        console.error("Error creating quote:", result.error);
-        // Handle error, maybe show a toast
-      }
+      await deleteQuote(id);
+      setQuotes(quotes.filter((quote) => quote._id !== id));
+      toast.success("ההצעה נמחקה בהצלחה");
     } catch (error) {
-      console.error("Error creating quote:", error);
-      // Handle error
+      toast.error("אירעה שגיאה במחיקת ההצעה");
     }
   };
 
-  const handleUpdate = async (id: string, data: any) => {
-    // TODO: Implement update quote action
-    console.log("Update quote:", id, data);
-  };
-
-  const handleDelete = async (id: string) => {
-    // TODO: Implement delete quote action
-    console.log("Delete quote:", id);
-  };
+  const filteredQuotes = quotes.filter((quote) => {
+    const matchesSearch =
+      quote.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      quote.customer.name.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesStatus =
+      statusFilter === "all" ? true : quote.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   return (
     <div className="space-y-4">
-      <div className="flex justify-between items-center">
-        <div className="flex gap-4">
-          <Input
-            placeholder="חיפוש לפי מספר הצעה..."
-            className="max-w-sm"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-          />
-          <Select value={selectedType} onValueChange={setSelectedType}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="בחר סוג" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">הכל</SelectItem>
-              {types.map((type) => (
-                <SelectItem key={type} value={type}>
-                  {type}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-            <SelectTrigger className="w-[180px]">
-              <SelectValue placeholder="בחר סטטוס" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">הכל</SelectItem>
-              {statuses.map((status) => (
-                <SelectItem key={status} value={status}>
-                  {status}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
-          <div className="flex gap-2 items-center">
-            <Input
-              type="number"
-              placeholder="סכום מינימום"
-              className="w-[120px]"
-              value={minAmount}
-              onChange={(e) => setMinAmount(e.target.value)}
-            />
-            <span>-</span>
-            <Input
-              type="number"
-              placeholder="סכום מקסימום"
-              className="w-[120px]"
-              value={maxAmount}
-              onChange={(e) => setMaxAmount(e.target.value)}
-            />
-          </div>
-        </div>
-        <QuoteForm onSubmit={handleCreate} />
+      <div className="flex gap-4">
+        <Input
+          placeholder="חיפוש לפי מספר הצעה או שם לקוח..."
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          className="max-w-sm"
+        />
+        <Select value={statusFilter} onValueChange={setStatusFilter}>
+          <SelectTrigger className="w-[180px]">
+            <SelectValue placeholder="סטטוס" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="all">הכל</SelectItem>
+            <SelectItem value="טיוטה">טיוטה</SelectItem>
+            <SelectItem value="נשלחה">נשלחה</SelectItem>
+            <SelectItem value="מאושרת">מאושרת</SelectItem>
+            <SelectItem value="נדחתה">נדחתה</SelectItem>
+            <SelectItem value="פג תוקף">פג תוקף</SelectItem>
+          </SelectContent>
+        </Select>
       </div>
+
       <Table>
         <TableHeader>
           <TableRow>
             <TableHead>מספר הצעה</TableHead>
-            <TableHead>סוג</TableHead>
             <TableHead>לקוח</TableHead>
-            <TableHead>תוקף עד</TableHead>
+            <TableHead>סוג</TableHead>
+            <TableHead>תוקף</TableHead>
             <TableHead>סכום</TableHead>
             <TableHead>סטטוס</TableHead>
-            <TableHead>פעולות</TableHead>
+            <TableHead className="text-left">פעולות</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
           {filteredQuotes.map((quote) => (
             <TableRow key={quote._id}>
               <TableCell>{quote.quoteNumber}</TableCell>
+              <TableCell>{quote.customer.name}</TableCell>
               <TableCell>{quote.type}</TableCell>
-              <TableCell>{quote.customer?.name || "לא ידוע"}</TableCell>
               <TableCell>
                 {format(new Date(quote.validUntil), "dd/MM/yyyy", {
                   locale: he,
@@ -206,42 +135,32 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
               </TableCell>
               <TableCell>₪{quote.totalAmount.toLocaleString()}</TableCell>
               <TableCell>
-                <span
-                  className={`px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${
+                <Badge
+                  variant={
                     quote.status === "מאושרת"
-                      ? "bg-green-100 text-green-800"
+                      ? "default"
                       : quote.status === "נדחתה"
-                        ? "bg-red-100 text-red-800"
-                        : quote.status === "נשלחה"
-                          ? "bg-blue-100 text-blue-800"
-                          : quote.status === "פג תוקף"
-                            ? "bg-gray-100 text-gray-800"
-                            : "bg-yellow-100 text-yellow-800"
-                  }`}
+                        ? "destructive"
+                        : quote.status === "פג תוקף"
+                          ? "secondary"
+                          : "outline"
+                  }
                 >
                   {quote.status}
-                </span>
+                </Badge>
               </TableCell>
-              <TableCell>
+              <TableCell className="text-left">
                 <div className="flex gap-2">
-                  <Button
-                    variant="ghost"
-                    size="icon"
-                    onClick={() =>
-                      window.open(`/dashboard/quotes/${quote._id}`, "_blank")
-                    }
-                  >
-                    <Eye className="h-4 w-4" />
-                  </Button>
-                  <QuoteForm
-                    quote={quote}
-                    onSubmit={(data) => handleUpdate(quote._id, data)}
-                    trigger={
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    }
-                  />
+                  <Link href={`/dashboard/quotes/${quote._id}`}>
+                    <Button variant="ghost" size="icon">
+                      <Eye className="h-4 w-4" />
+                    </Button>
+                  </Link>
+                  <Link href={`/dashboard/quotes/${quote._id}`}>
+                    <Button variant="ghost" size="icon">
+                      <Pencil className="h-4 w-4" />
+                    </Button>
+                  </Link>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="icon">
@@ -252,7 +171,7 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
                       <AlertDialogHeader>
                         <AlertDialogTitle>האם למחוק את ההצעה?</AlertDialogTitle>
                         <AlertDialogDescription>
-                          פעולה זו לא ניתנת לביטול.
+                          פעולה זו אינה ניתנת לביטול.
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>

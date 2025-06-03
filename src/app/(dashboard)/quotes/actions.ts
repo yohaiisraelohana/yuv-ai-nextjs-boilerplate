@@ -93,3 +93,37 @@ export async function deleteQuote(id: string) {
     return { error: "Failed to delete quote" };
   }
 }
+
+export async function getQuote(id: string) {
+  await connectToDatabase();
+  const quote = await Quote.findById(id)
+    .populate("customer", "name email")
+    .populate("template", "title")
+    .populate("items.product", "name price")
+    .lean();
+
+  if (!quote) {
+    throw new Error("Quote not found");
+  }
+
+  return {
+    ...quote,
+    _id: quote._id.toString(),
+    customer: {
+      _id: quote.customer._id.toString(),
+      name: quote.customer.name,
+    },
+    template: {
+      _id: quote.template._id.toString(),
+      title: quote.template.title,
+    },
+    items: quote.items.map((item: any) => ({
+      ...item,
+      product: {
+        _id: item.product._id.toString(),
+        name: item.product.name,
+        price: item.product.price,
+      },
+    })),
+  };
+}

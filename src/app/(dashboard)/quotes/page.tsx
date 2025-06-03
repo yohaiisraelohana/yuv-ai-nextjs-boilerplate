@@ -115,7 +115,7 @@ async function getQuotes() {
       .sort({ createdAt: -1 })
       .lean();
 
-    const serializedQuotes = quotes.map((quote: any) => ({
+    const serializedQuotes = (quotes as any[]).map((quote) => ({
       ...quote,
       _id: quote._id.toString(),
       customer: {
@@ -138,9 +138,9 @@ async function getQuotes() {
       validUntil: new Date(quote.validUntil),
       createdAt: new Date(quote.createdAt),
       updatedAt: new Date(quote.updatedAt),
-    }));
+    })) as QuoteType[];
 
-    return serializedQuotes as unknown as QuoteType[];
+    return serializedQuotes;
   } catch (error) {
     console.error("Error fetching quotes:", error);
     return [];

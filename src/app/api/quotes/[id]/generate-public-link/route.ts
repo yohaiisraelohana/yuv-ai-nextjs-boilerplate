@@ -1,25 +1,24 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Quote from "@/models/Quote";
-import { randomBytes } from "crypto";
+import { nanoid } from "nanoid";
 
 export async function POST(
   request: Request,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: { params: { id: string } }
 ) {
   try {
     await connectToDatabase();
-    const { id } = await params;
-    const quote = await Quote.findById(id);
+    const quote = await Quote.findById(params.id);
 
     if (!quote) {
-      return new NextResponse("Quote not found", { status: 404 });
+      return NextResponse.json({ error: "Quote not found" }, { status: 404 });
     }
 
-    // Generate a secure random token
-    const publicToken = randomBytes(32).toString("hex");
+    // Generate a unique token
+    const publicToken = nanoid(32);
 
-    // Update quote with public token
+    // Update the quote with the public token
     quote.publicToken = publicToken;
     await quote.save();
 
@@ -27,9 +26,12 @@ export async function POST(
     const baseUrl = process.env.NEXT_PUBLIC_APP_URL || "http://localhost:3000";
     const publicUrl = `${baseUrl}/public/quotes/${publicToken}`;
 
-    return NextResponse.json({ publicUrl });
+    return NextResponse.json({ url: publicUrl });
   } catch (error) {
     console.error("Error generating public link:", error);
-    return new NextResponse("Internal Server Error", { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to generate public link" },
+      { status: 500 }
+    );
   }
 }

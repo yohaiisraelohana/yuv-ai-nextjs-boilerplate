@@ -191,10 +191,10 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
           );
         }
 
-        if (templatesData.templates) {
-          console.log("Loaded templates:", templatesData.templates);
+        if (templatesData) {
+          console.log("Loaded templates:", templatesData);
           setTemplates(
-            templatesData.templates.map((t: any) => ({
+            templatesData.map((t: any) => ({
               _id: t._id,
               title: t.title,
               type: t.type,
@@ -215,8 +215,8 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
           }
         }
 
-        if (quote?.template && templatesData.templates) {
-          const template = templatesData.templates.find(
+        if (quote?.template && templatesData) {
+          const template = templatesData.find(
             (t: any) => t._id === quote.template._id
           );
           if (template) {

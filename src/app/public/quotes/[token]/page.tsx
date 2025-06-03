@@ -1,224 +1,241 @@
-import { connectToDatabase } from "@/lib/mongodb";
-import Quote from "@/models/Quote";
+"use client";
+
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { cookies } from "next/headers";
-import { SignQuoteForm } from "./SignQuoteForm";
+import { Badge } from "@/components/ui/badge";
+import { Textarea } from "@/components/ui/textarea";
 
-async function getQuote(token: string) {
-  try {
-    await connectToDatabase();
-    const quote = await Quote.findOne({ publicToken: token })
-      .populate("customer", "name email phone company")
-      .populate("template", "title content")
-      .populate("items.product", "name price")
-      .lean();
-
-    if (!quote) {
-      return null;
-    }
-
-    return {
-      _id: (quote as any)._id.toString(),
-      quoteNumber: (quote as any).quoteNumber,
-      type: (quote as any).type,
-      customer: {
-        _id: (quote as any).customer._id.toString(),
-        name: (quote as any).customer.name,
-        email: (quote as any).customer.email,
-        phone: (quote as any).customer.phone,
-        company: (quote as any).customer.company,
-      },
-      template: {
-        _id: (quote as any).template._id.toString(),
-        title: (quote as any).template.title,
-        content: (quote as any).template.content,
-      },
-      items: (quote as any).items.map((item: any) => ({
-        _id: item._id.toString(),
-        product: {
-          _id: item.product._id.toString(),
-          name: item.product.name,
-          price: item.product.price,
-        },
-        quantity: item.quantity,
-        price: item.price,
-        discount: item.discount,
-      })),
-      status: (quote as any).status,
-      validUntil: new Date((quote as any).validUntil),
-      totalAmount: (quote as any).totalAmount,
-      notes: (quote as any).notes,
-      emailVerified: (quote as any).emailVerified,
-      signature: (quote as any).signature,
-      signedAt: (quote as any).signedAt,
-    };
-  } catch (error) {
-    console.error("Error fetching quote:", error);
-    return null;
-  }
+interface PublicQuotePageProps {
+  params: {
+    token: string;
+  };
 }
 
-export default async function PublicQuotePage({
-  params,
-}: {
-  params: Promise<{ token: string }>;
-}) {
-  const { token } = await params;
-  const quote = await getQuote(token);
+interface Quote {
+  _id: string;
+  quoteNumber: string;
+  type: string;
+  customer: {
+    name: string;
+    email: string;
+  };
+  template: {
+    title: string;
+  };
+  validUntil: string;
+  totalAmount: number;
+  status: string;
+  items: Array<{
+    product: {
+      name: string;
+      price: number;
+    };
+    quantity: number;
+    price: number;
+    discount: number;
+  }>;
+  notes?: string;
+}
 
-  if (!quote) {
-    return (
-      <div className="py-10">
-        <Card>
-          <CardContent className="pt-6">
-            <p className="text-center text-gray-500">הצעה לא נמצאה</p>
-          </CardContent>
-        </Card>
-      </div>
-    );
+export default function PublicQuotePage({ params }: PublicQuotePageProps) {
+  const [quote, setQuote] = useState<Quote | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [email, setEmail] = useState("");
+  const [isVerified, setIsVerified] = useState(false);
+  const [signature, setSignature] = useState("");
+  const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchQuote = async () => {
+      try {
+        const response = await fetch(`/api/quotes/public/${params.token}`);
+        if (!response.ok) {
+          throw new Error("Failed to fetch quote");
+        }
+        const data = await response.json();
+        setQuote(data);
+        setEmail(data.customer.email || "");
+      } catch (error) {
+        setError("ההצעה לא נמצאה או פג תוקפה");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchQuote();
+  }, [params.token]);
+
+  const handleVerifyEmail = async () => {
+    try {
+      const response = await fetch(`/api/quotes/${quote?._id}/verify-email`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ email }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to verify email");
+      }
+
+      setIsVerified(true);
+      toast.success("האימייל אומת בהצלחה");
+    } catch (error) {
+      toast.error("אירעה שגיאה באימות האימייל");
+    }
+  };
+
+  const handleSign = async () => {
+    try {
+      const response = await fetch(`/api/quotes/${quote?._id}/sign`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ signature }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to sign quote");
+      }
+
+      toast.success("ההצעה נחתמה בהצלחה");
+    } catch (error) {
+      toast.error("אירעה שגיאה בחתימה על ההצעה");
+    }
+  };
+
+  if (loading) {
+    return <div>טוען...</div>;
   }
 
-  const cookieStore = await cookies();
-  const verifiedEmail = cookieStore.get(`quote_${token}_verified`)?.value;
-
-  if (!quote.emailVerified && !verifiedEmail) {
-    return (
-      <div className="py-10">
-        <Card>
-          <CardHeader>
-            <CardTitle>אימות אימייל</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <SignQuoteForm
-              quoteId={quote._id}
-              customerEmail={quote.customer.email}
-              quote={quote}
-            />
-          </CardContent>
-        </Card>
-      </div>
-    );
+  if (error || !quote) {
+    return <div className="text-red-500">{error}</div>;
   }
 
   return (
-    <div className="py-10">
-      <Card>
-        <CardHeader>
-          <CardTitle>הצעת מחיר #{quote.quoteNumber}</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-6">
+    <div className="container mx-auto py-8">
+      <div className="max-w-4xl mx-auto">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>הצעת מחיר #{quote.quoteNumber}</CardTitle>
+                <p className="text-muted-foreground mt-1">
+                  {quote.template.title}
+                </p>
+              </div>
+              <Badge
+                variant={
+                  quote.status === "מאושרת"
+                    ? "default"
+                    : quote.status === "נדחתה"
+                      ? "destructive"
+                      : quote.status === "פג תוקף"
+                        ? "secondary"
+                        : "outline"
+                }
+              >
+                {quote.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-6">
             <div className="grid grid-cols-2 gap-4">
               <div>
-                <h3 className="font-semibold mb-2">פרטי לקוח</h3>
+                <h3 className="font-medium mb-1">לקוח</h3>
                 <p>{quote.customer.name}</p>
-                <p>{quote.customer.company}</p>
-                <p>{quote.customer.email}</p>
-                <p>{quote.customer.phone}</p>
               </div>
               <div>
-                <h3 className="font-semibold mb-2">פרטי הצעה</h3>
-                <p>סוג: {quote.type}</p>
-                <p>סטטוס: {quote.status}</p>
+                <h3 className="font-medium mb-1">תוקף עד</h3>
                 <p>
-                  תוקף עד:{" "}
                   {format(new Date(quote.validUntil), "dd/MM/yyyy", {
                     locale: he,
                   })}
                 </p>
-                <p>סכום כולל: ₪{quote.totalAmount.toLocaleString()}</p>
               </div>
             </div>
 
             <div>
-              <h3 className="font-semibold mb-2">פריטים</h3>
-              <div className="border rounded-lg">
-                <table className="w-full">
-                  <thead>
-                    <tr className="border-b">
-                      <th className="p-2 text-right">מוצר</th>
-                      <th className="p-2 text-right">כמות</th>
-                      <th className="p-2 text-right">מחיר</th>
-                      <th className="p-2 text-right">הנחה</th>
-                      <th className="p-2 text-right">סה"כ</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {quote.items.map((item: any) => (
-                      <tr key={item._id} className="border-b">
-                        <td className="p-2">{item.product.name}</td>
-                        <td className="p-2">{item.quantity}</td>
-                        <td className="p-2">₪{item.price.toLocaleString()}</td>
-                        <td className="p-2">{item.discount}%</td>
-                        <td className="p-2">
-                          ₪
-                          {(
-                            item.price *
-                            item.quantity *
-                            (1 - item.discount / 100)
-                          ).toLocaleString()}
-                        </td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
+              <h3 className="font-medium mb-2">פריטים</h3>
+              <div className="space-y-2">
+                {quote.items.map((item, index) => (
+                  <div
+                    key={index}
+                    className="flex justify-between items-center p-2 bg-muted rounded"
+                  >
+                    <div>
+                      <p className="font-medium">{item.product.name}</p>
+                      <p className="text-sm text-muted-foreground">
+                        {item.quantity} יח' x ₪{item.price.toLocaleString()}
+                        {item.discount > 0 && ` (-${item.discount}%)`}
+                      </p>
+                    </div>
+                    <p className="font-medium">
+                      ₪
+                      {(
+                        item.quantity *
+                        item.price *
+                        (1 - item.discount / 100)
+                      ).toLocaleString()}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="border-t pt-4">
+              <div className="flex justify-between items-center">
+                <h3 className="font-medium">סה״כ לתשלום</h3>
+                <p className="text-2xl font-bold">
+                  ₪{quote.totalAmount.toLocaleString()}
+                </p>
               </div>
             </div>
 
             {quote.notes && (
               <div>
-                <h3 className="font-semibold mb-2">הערות</h3>
-                <p className="whitespace-pre-wrap">{quote.notes}</p>
+                <h3 className="font-medium mb-2">הערות</h3>
+                <p className="text-muted-foreground">{quote.notes}</p>
               </div>
             )}
 
-            <div>
-              <h3 className="font-semibold mb-2">תבנית</h3>
-              <p className="font-medium">{quote.template.title}</p>
-              <p className="whitespace-pre-wrap mt-2">
-                {quote.template.content}
-              </p>
-            </div>
-
-            {quote.signature && (
-              <div>
-                <h3 className="font-semibold mb-2">חתימה</h3>
-                <p>חתום על ידי: {quote.customer.name}</p>
-                <p>
-                  תאריך:{" "}
-                  {format(new Date(quote.signedAt), "dd/MM/yyyy HH:mm", {
-                    locale: he,
-                  })}
+            {!isVerified ? (
+              <div className="space-y-4">
+                <h3 className="font-medium">אימות אימייל</h3>
+                <p className="text-muted-foreground">
+                  אנא הזן את כתובת האימייל שלך כדי לצפות בהצעה
                 </p>
-                <div className="mt-2">
-                  <img
-                    src={quote.signature}
-                    alt="חתימה"
-                    className="max-w-xs border rounded"
+                <div className="flex gap-2">
+                  <Input
+                    type="email"
+                    placeholder="הזן כתובת אימייל"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
                   />
+                  <Button onClick={handleVerifyEmail}>אמת אימייל</Button>
                 </div>
               </div>
-            )}
-
-            {!quote.signature && (
-              <div>
-                <h3 className="font-semibold mb-2">אישור הצעה</h3>
-                <p className="mb-4">
-                  אנא חתום על ההצעה כדי לאשר אותה. לאחר החתימה, ההצעה תועבר
-                  לאישור סופי.
-                </p>
-                <SignQuoteForm
-                  quoteId={quote._id}
-                  customerEmail={quote.customer.email}
-                  quote={quote}
+            ) : (
+              <div className="space-y-4">
+                <h3 className="font-medium">חתימה על ההצעה</h3>
+                <Textarea
+                  placeholder="הזן את חתימתך כאן..."
+                  value={signature}
+                  onChange={(e) => setSignature(e.target.value)}
                 />
+                <Button onClick={handleSign}>חתום על ההצעה</Button>
               </div>
             )}
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
