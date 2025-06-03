@@ -5,6 +5,7 @@ import QuoteTemplate from "@/models/QuoteTemplate";
 import Company from "@/models/Company";
 import { PDFDocument, rgb, StandardFonts } from "pdf-lib";
 import fontkit from "@pdf-lib/fontkit";
+import { revalidatePath } from "next/cache";
 
 interface TemplateVariable {
   name: string;
@@ -20,6 +21,7 @@ export async function createQuoteTemplate(data: {
   try {
     await connectToDatabase();
     const template = await QuoteTemplate.create(data);
+    revalidatePath("/quotesTemplate");
     return { template: JSON.parse(JSON.stringify(template)) };
   } catch (error) {
     console.error("Error creating quote template:", error);
@@ -42,6 +44,7 @@ export async function updateQuoteTemplate(
     const template = await QuoteTemplate.findByIdAndUpdate(id, data, {
       new: true,
     });
+    revalidatePath("/quotesTemplate");
     return { template: JSON.parse(JSON.stringify(template)) };
   } catch (error) {
     console.error("Error updating quote template:", error);
@@ -69,6 +72,12 @@ export async function getQuoteTemplates() {
     console.error("Error fetching quote templates:", error);
     return { error: "Failed to fetch quote templates" };
   }
+}
+
+export async function getQuoteTemplateById(id: string) {
+  await connectToDatabase();
+  const template = await QuoteTemplate.findById(id);
+  return template ? JSON.parse(JSON.stringify(template)) : null;
 }
 
 export async function generateQuotePDF(templateId: string, data: any) {

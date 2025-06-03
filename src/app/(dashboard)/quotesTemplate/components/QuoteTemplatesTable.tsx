@@ -36,6 +36,7 @@ import { deleteQuoteTemplate } from "../actions";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 
 interface QuoteTemplate {
   _id: string;
@@ -118,7 +119,7 @@ export function QuoteTemplatesTable({
             <TableHead>כותרת</TableHead>
             <TableHead>משתנים</TableHead>
             <TableHead>סטטוס</TableHead>
-            <TableHead className="text-left">פעולות</TableHead>
+            <TableHead className="w-[100px]">פעולות</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
@@ -138,15 +139,11 @@ export function QuoteTemplatesTable({
               <TableCell>
                 <div className="flex gap-2">
                   <QuoteTemplatePreview template={template} />
-                  <QuoteTemplateForm
-                    template={template}
-                    mode="edit"
-                    trigger={
-                      <Button variant="ghost" size="icon">
-                        <Pencil className="h-4 w-4" />
-                      </Button>
-                    }
-                  />
+                  <Button variant="ghost" size="icon" asChild>
+                    <Link href={`/quotesTemplate/edit/${template._id}`}>
+                      <Pencil className="h-4 w-4" />
+                    </Link>
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="icon">
