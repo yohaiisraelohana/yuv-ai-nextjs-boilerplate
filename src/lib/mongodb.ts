@@ -2,6 +2,7 @@ import mongoose from "mongoose";
 import Quote from "@/models/Quote";
 import QuoteTemplate from "@/models/QuoteTemplate";
 import Customer from "@/models/Customer";
+import Product from "@/models/Product";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -35,6 +36,9 @@ if (!mongoose.models.QuoteTemplate) {
 }
 if (!mongoose.models.Customer) {
   mongoose.model("Customer", Customer.schema);
+}
+if (!mongoose.models.Product) {
+  mongoose.model("Product", Product.schema);
 }
 
 export async function connectToDatabase() {

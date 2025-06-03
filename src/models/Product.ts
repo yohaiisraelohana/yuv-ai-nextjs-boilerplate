@@ -1,34 +1,21 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose from "mongoose";
 
-const productSchema = new Schema(
+const productSchema = new mongoose.Schema(
   {
     name: {
       type: String,
-      required: [true, "שם המוצר הוא שדה חובה"],
-      trim: true,
-      index: true,
-    },
-    description: {
-      type: String,
-      required: [true, "תיאור המוצר הוא שדה חובה"],
-      trim: true,
+      required: true,
     },
     price: {
       type: Number,
-      required: [true, "מחיר המוצר הוא שדה חובה"],
-      min: [0, "המחיר לא יכול להיות שלילי"],
+      required: true,
     },
-    category: {
+    description: {
       type: String,
-      required: [true, "קטגוריה היא שדה חובה"],
-      trim: true,
-      index: true,
     },
-    discount: {
-      type: Number,
-      default: 0,
-      min: [0, "ההנחה לא יכולה להיות שלילית"],
-      max: [100, "ההנחה לא יכולה להיות גדולה מ-100%"],
+    isActive: {
+      type: Boolean,
+      default: true,
     },
   },
   {
@@ -36,8 +23,8 @@ const productSchema = new Schema(
   }
 );
 
-// Create compound index for name and category
-productSchema.index({ name: 1, category: 1 });
+// Prevent model overwrite error
+const Product =
+  mongoose.models.Product || mongoose.model("Product", productSchema);
 
-const Product = models.Product || mongoose.model("Product", productSchema);
 export default Product;

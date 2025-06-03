@@ -1,18 +1,25 @@
 import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Quote from "@/models/Quote";
+import Product from "@/models/Product";
+import Customer from "@/models/Customer";
+import QuoteTemplate from "@/models/QuoteTemplate";
 
-export async function GET(
-  request: Request,
-  { params }: { params: { token: string } }
-) {
+interface RouteParams {
+  params: Promise<{
+    token: string;
+  }>;
+}
+
+export async function GET(request: Request, { params }: RouteParams) {
   try {
     await connectToDatabase();
-    const quote = (await Quote.findOne({ publicToken: params.token })
+    const resolvedParams = await params;
+
+    const quote = await Quote.findOne({ publicToken: resolvedParams.token })
       .populate("customer", "name email")
       .populate("template", "title")
-      .populate("items.product", "name price")
-      .lean()) as any;
+      .populate("items.product", "name price");
 
     if (!quote) {
       return NextResponse.json({ error: "Quote not found" }, { status: 404 });
