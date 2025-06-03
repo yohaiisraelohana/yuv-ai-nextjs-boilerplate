@@ -19,7 +19,7 @@ const quoteSchema = new mongoose.Schema(
     },
     template: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: "Template",
+      ref: "QuoteTemplate",
       required: true,
     },
     items: [

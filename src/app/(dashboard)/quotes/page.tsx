@@ -10,6 +10,13 @@ import Quote from "@/models/Quote";
 import Customer from "@/models/Customer";
 import QuoteTemplate from "@/models/QuoteTemplate";
 
+// Ensure models are registered
+const models = {
+  Quote,
+  Customer,
+  QuoteTemplate,
+};
+
 type QuoteType = {
   _id: string;
   quoteNumber: string;
@@ -51,7 +58,13 @@ type MongoQuote = {
 
 async function getQuotes() {
   try {
-    await connectToDatabase();
+    const connection = await connectToDatabase();
+
+    // Ensure models are registered with the current connection
+    if (!connection.models.Quote || !connection.models.QuoteTemplate) {
+      throw new Error("Required models not registered");
+    }
+
     const quotes = await Quote.find()
       .populate("customer", "name")
       .populate("template", "title")
