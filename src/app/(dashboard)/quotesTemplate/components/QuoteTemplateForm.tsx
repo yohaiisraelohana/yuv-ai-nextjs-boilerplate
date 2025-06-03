@@ -1,9 +1,13 @@
 "use client";
 
-import { zodResolver } from "@hookform/resolvers/zod";
-import { useForm, useFieldArray } from "react-hook-form";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 import {
   Form,
   FormControl,
@@ -13,14 +17,6 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@/components/ui/dialog";
 import {
   Select,
   SelectContent,
@@ -28,117 +24,97 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { RichTextEditor } from "./RichTextEditor";
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 import { useState } from "react";
-import { toast } from "sonner";
-import { Plus, Trash2 } from "lucide-react";
 import { createQuoteTemplate, updateQuoteTemplate } from "../actions";
-import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
-const quoteTemplateSchema = z.object({
-  type: z.enum(["שירותים", "סדנאות", "מוצרים"], {
-    required_error: "סוג התבנית הוא שדה חובה",
-  }),
-  title: z.string().min(1, "כותרת התבנית היא שדה חובה"),
-  content: z.string().min(1, "תוכן התבנית הוא שדה חובה"),
-  variables: z
-    .array(
-      z.object({
-        name: z.string().min(1, "שם המשתנה הוא שדה חובה"),
-        description: z.string().min(1, "תיאור המשתנה הוא שדה חובה"),
-      })
-    )
-    .min(1, "חובה להוסיף לפחות משתנה אחד"),
+const formSchema = z.object({
+  type: z.enum(["שירותים", "סדנאות", "מוצרים"]),
+  title: z.string().min(1, "כותרת היא שדה חובה"),
+  content: z.string().min(1, "תוכן הוא שדה חובה"),
+  variables: z.array(
+    z.object({
+      name: z.string(),
+      description: z.string(),
+    })
+  ),
 });
 
-type QuoteTemplateFormValues = z.infer<typeof quoteTemplateSchema>;
-
 interface QuoteTemplateFormProps {
+  mode: "create" | "edit";
   template?: {
-    _id: string;
+    id: string;
     type: "שירותים" | "סדנאות" | "מוצרים";
     title: string;
     content: string;
     variables: Array<{ name: string; description: string }>;
   };
-  mode: "create" | "edit";
-  trigger?: React.ReactNode;
 }
 
-export function QuoteTemplateForm({
-  template,
-  mode,
-  trigger,
-}: QuoteTemplateFormProps) {
+export function QuoteTemplateForm({ mode, template }: QuoteTemplateFormProps) {
   const [open, setOpen] = useState(false);
-  const router = useRouter();
+  const [isLoading, setIsLoading] = useState(false);
 
-  const form = useForm<QuoteTemplateFormValues>({
-    resolver: zodResolver(quoteTemplateSchema),
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
     defaultValues: {
       type: template?.type || "שירותים",
       title: template?.title || "",
       content: template?.content || "",
-      variables: template?.variables || [{ name: "", description: "" }],
+      variables: template?.variables || [],
     },
   });
 
-  const { fields, append, remove } = useFieldArray({
-    control: form.control,
-    name: "variables",
-  });
-
-  const handleSubmit = async (data: QuoteTemplateFormValues) => {
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      setIsLoading(true);
       if (mode === "create") {
-        const result = await createQuoteTemplate(data);
-        if (result.error) {
-          throw new Error(result.error);
-        }
+        await createQuoteTemplate(values);
         toast.success("התבנית נוצרה בהצלחה");
-      } else if (template) {
-        const result = await updateQuoteTemplate(template._id, data);
-        if (result.error) {
-          throw new Error(result.error);
-        }
+      } else {
+        if (!template?.id) return;
+        await updateQuoteTemplate(template.id, values);
         toast.success("התבנית עודכנה בהצלחה");
       }
       setOpen(false);
       form.reset();
-      router.refresh();
     } catch (error) {
       toast.error("אירעה שגיאה");
+    } finally {
+      setIsLoading(false);
     }
-  };
+  }
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        {trigger || <Button>תבנית חדשה</Button>}
+        <Button>{mode === "create" ? "תבנית חדשה" : "ערוך תבנית"}</Button>
       </DialogTrigger>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-3xl">
         <DialogHeader>
           <DialogTitle>
             {mode === "create" ? "תבנית חדשה" : "ערוך תבנית"}
           </DialogTitle>
         </DialogHeader>
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(handleSubmit)}
-            className="space-y-4"
-          >
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             <FormField
               control={form.control}
               name="type"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>סוג התבנית</FormLabel>
+                  <FormLabel>סוג</FormLabel>
                   <Select
                     onValueChange={field.onChange}
                     defaultValue={field.value}
                   >
                     <FormControl>
                       <SelectTrigger>
-                        <SelectValue placeholder="בחר סוג תבנית" />
+                        <SelectValue placeholder="בחר סוג" />
                       </SelectTrigger>
                     </FormControl>
                     <SelectContent>
@@ -151,13 +127,12 @@ export function QuoteTemplateForm({
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="title"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>כותרת התבנית</FormLabel>
+                  <FormLabel>כותרת</FormLabel>
                   <FormControl>
                     <Input {...field} />
                   </FormControl>
@@ -165,92 +140,26 @@ export function QuoteTemplateForm({
                 </FormItem>
               )}
             />
-
             <FormField
               control={form.control}
               name="content"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>תוכן התבנית</FormLabel>
+                  <FormLabel>תוכן</FormLabel>
                   <FormControl>
-                    <Textarea
-                      {...field}
-                      className="min-h-[200px]"
-                      placeholder="השתמש ב-{{שם_משתנה}} כדי להוסיף משתנים"
+                    <RichTextEditor
+                      content={field.value}
+                      onChange={field.onChange}
+                      variables={form.getValues("variables")}
                     />
                   </FormControl>
                   <FormMessage />
                 </FormItem>
               )}
             />
-
-            <div className="space-y-4">
-              <div className="flex justify-between items-center">
-                <h3 className="text-lg font-semibold">משתנים</h3>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={() => append({ name: "", description: "" })}
-                >
-                  <Plus className="h-4 w-4 ml-2" />
-                  הוסף משתנה
-                </Button>
-              </div>
-
-              {fields.map((field, index) => (
-                <div key={field.id} className="flex gap-4 items-start">
-                  <FormField
-                    control={form.control}
-                    name={`variables.${index}.name`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>שם המשתנה</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name={`variables.${index}.description`}
-                    render={({ field }) => (
-                      <FormItem className="flex-1">
-                        <FormLabel>תיאור המשתנה</FormLabel>
-                        <FormControl>
-                          <Input {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <Button
-                    type="button"
-                    variant="ghost"
-                    size="icon"
-                    className="mt-8"
-                    onClick={() => remove(index)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
-                </div>
-              ))}
-            </div>
-
-            <div className="flex justify-end gap-4">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setOpen(false)}
-              >
-                ביטול
-              </Button>
-              <Button type="submit">
-                {mode === "create" ? "צור תבנית" : "שמור שינויים"}
+            <div className="flex justify-end">
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? "שומר..." : "שמור"}
               </Button>
             </div>
           </form>
