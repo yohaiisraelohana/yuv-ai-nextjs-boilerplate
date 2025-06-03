@@ -43,8 +43,10 @@ interface QuoteTemplate {
   type: "שירותים" | "סדנאות" | "מוצרים";
   title: string;
   content: string;
-  variables: Array<{ name: string; description: string }>;
   isActive: boolean;
+  createdAt: string;
+  updatedAt: string;
+  variables: Array<{ name: string; description: string }>;
 }
 
 interface QuoteTemplatesTableProps {
@@ -84,7 +86,9 @@ export function QuoteTemplatesTable({
         throw new Error(result.error);
       }
       toast.success("התבנית נמחקה בהצלחה");
-      router.refresh();
+      setFilteredTemplates((prev) =>
+        prev.filter((template) => template._id !== id)
+      );
     } catch (error) {
       toast.error("אירעה שגיאה במחיקת התבנית");
     }
@@ -117,7 +121,6 @@ export function QuoteTemplatesTable({
           <TableRow>
             <TableHead>סוג</TableHead>
             <TableHead>כותרת</TableHead>
-            <TableHead>משתנים</TableHead>
             <TableHead>סטטוס</TableHead>
             <TableHead className="w-[100px]">פעולות</TableHead>
           </TableRow>
@@ -127,7 +130,6 @@ export function QuoteTemplatesTable({
             <TableRow key={template._id}>
               <TableCell>{template.type}</TableCell>
               <TableCell>{template.title}</TableCell>
-              <TableCell>{template.variables.length}</TableCell>
               <TableCell>
                 <Badge
                   variant={template.isActive ? "default" : "secondary"}

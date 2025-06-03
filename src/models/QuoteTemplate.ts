@@ -1,28 +1,23 @@
-import mongoose, { Schema, models } from "mongoose";
+import mongoose from "mongoose";
 
-const quoteTemplateSchema = new Schema(
+const quoteTemplateSchema = new mongoose.Schema(
   {
     type: {
       type: String,
-      required: [true, "סוג התבנית הוא שדה חובה"],
       enum: ["שירותים", "סדנאות", "מוצרים"],
-      index: true,
+      required: true,
     },
     title: {
       type: String,
-      required: [true, "כותרת התבנית היא שדה חובה"],
-      trim: true,
-      index: true,
+      required: true,
     },
     content: {
       type: String,
-      required: [true, "תוכן התבנית הוא שדה חובה"],
-      trim: true,
+      required: true,
     },
     isActive: {
       type: Boolean,
       default: true,
-      index: true,
     },
     variables: [
       {
@@ -48,5 +43,7 @@ const quoteTemplateSchema = new Schema(
 quoteTemplateSchema.index({ type: 1, isActive: 1 });
 
 const QuoteTemplate =
-  models.QuoteTemplate || mongoose.model("QuoteTemplate", quoteTemplateSchema);
+  mongoose.models.QuoteTemplate ||
+  mongoose.model("QuoteTemplate", quoteTemplateSchema);
+
 export default QuoteTemplate;

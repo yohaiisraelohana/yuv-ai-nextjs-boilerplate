@@ -35,50 +35,124 @@ import {
   Rows,
   Columns,
   Trash2,
+  AlignJustify,
+  TextIcon,
+  Languages,
+  Building2,
+  User,
+  Package,
+  Receipt,
+  Signature,
 } from "lucide-react";
+
+const PREDEFINED_VARIABLES = [
+  {
+    category: "פרטי החברה",
+    variables: [
+      { name: "companyName", description: "שם החברה" },
+      { name: "companyLogo", description: "לוגו החברה" },
+      { name: "companyAddress", description: "כתובת החברה" },
+      { name: "companyPhone", description: "טלפון החברה" },
+      { name: "companyEmail", description: "אימייל החברה" },
+      { name: "companySignature", description: "חתימת החברה" },
+    ],
+  },
+  {
+    category: "פרטי הצעת המחיר",
+    variables: [
+      { name: "quoteNumber", description: "מספר הצעת מחיר" },
+      { name: "quoteDate", description: "תאריך הצעת המחיר" },
+      { name: "quoteValidUntil", description: "תוקף הצעת המחיר" },
+      { name: "quoteTotal", description: "סכום כולל" },
+      { name: "quoteDiscount", description: "הנחה" },
+      { name: "quoteFinalTotal", description: "סכום סופי" },
+    ],
+  },
+  {
+    category: "פרטי הלקוח",
+    variables: [
+      { name: "clientName", description: "שם הלקוח" },
+      { name: "clientAddress", description: "כתובת הלקוח" },
+      { name: "clientPhone", description: "טלפון הלקוח" },
+      { name: "clientEmail", description: "אימייל הלקוח" },
+      { name: "clientSignature", description: "חתימת הלקוח" },
+    ],
+  },
+  {
+    category: "טבלת מוצרים",
+    variables: [
+      { name: "productsTable", description: "טבלת מוצרים מלאה" },
+      { name: "productName", description: "שם המוצר" },
+      { name: "productQuantity", description: "כמות" },
+      { name: "productPrice", description: "מחיר ליחידה" },
+      { name: "productTotal", description: "סכום" },
+    ],
+  },
+];
 
 interface RichTextEditorProps {
   content: string;
   onChange: (content: string) => void;
-  variables: Array<{ name: string; description: string }>;
-  onVariablesChange?: (
-    variables: Array<{ name: string; description: string }>
-  ) => void;
 }
 
-export function RichTextEditor({
-  content,
-  onChange,
-  variables,
-  onVariablesChange,
-}: RichTextEditorProps) {
+export function RichTextEditor({ content, onChange }: RichTextEditorProps) {
   const [activeTab, setActiveTab] = useState("edit");
-  const [newVariable, setNewVariable] = useState({ name: "", description: "" });
   const [linkUrl, setLinkUrl] = useState("");
   const [imageUrl, setImageUrl] = useState("");
+  const [isRTL, setIsRTL] = useState(true);
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
   const editor = useEditor({
     extensions: [
-      StarterKit,
+      StarterKit.configure({
+        bulletList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+        orderedList: {
+          keepMarks: true,
+          keepAttributes: false,
+        },
+      }),
       Table.configure({
         resizable: true,
+        HTMLAttributes: {
+          class: "border-collapse border border-gray-300",
+        },
       }),
       TableRow,
-      TableCell,
-      TableHeader,
+      TableCell.configure({
+        HTMLAttributes: {
+          class: "border border-gray-300 p-2",
+        },
+      }),
+      TableHeader.configure({
+        HTMLAttributes: {
+          class: "border border-gray-300 p-2 bg-gray-100",
+        },
+      }),
       TextAlign.configure({
         types: ["heading", "paragraph"],
       }),
       Underline,
       Link.configure({
         openOnClick: false,
+        HTMLAttributes: {
+          class: "text-blue-600 hover:underline",
+        },
       }),
-      Image,
+      Image.configure({
+        HTMLAttributes: {
+          class: "max-w-full h-auto",
+        },
+      }),
     ],
     content,
     editorProps: {
       attributes: {
-        dir: "rtl",
+        dir: isRTL ? "rtl" : "ltr",
+        class:
+          "prose prose-sm sm:prose lg:prose-lg xl:prose-2xl mx-auto focus:outline-none",
       },
     },
     onUpdate: ({ editor }) => {
@@ -92,17 +166,9 @@ export function RichTextEditor({
     }
   };
 
-  const addVariable = () => {
-    if (newVariable.name && newVariable.description) {
-      const updatedVariables = [...variables, newVariable];
-      onVariablesChange?.(updatedVariables);
-      setNewVariable({ name: "", description: "" });
-    }
-  };
-
-  const removeVariable = (index: number) => {
-    const updatedVariables = variables.filter((_, i) => i !== index);
-    onVariablesChange?.(updatedVariables);
+  const toggleRTL = () => {
+    setIsRTL(!isRTL);
+    editor?.chain().focus().run();
   };
 
   const addLink = () => {
@@ -126,66 +192,43 @@ export function RichTextEditor({
   return (
     <div className="space-y-4">
       <div className="flex flex-wrap gap-2">
-        {variables.map((variable, index) => (
-          <div key={variable.name} className="relative group">
-            <div className="relative">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => insertVariable(variable.name)}
-              >
-                {variable.name}
-              </Button>
-              <div
-                className="absolute -right-2 -top-2 h-4 w-4 p-0 opacity-0 group-hover:opacity-100 cursor-pointer flex items-center justify-center bg-background rounded-full border"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  removeVariable(index);
-                }}
-              >
-                ×
+        {PREDEFINED_VARIABLES.map((category) => (
+          <div key={category.category} className="relative group">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() =>
+                setActiveCategory(
+                  activeCategory === category.category
+                    ? null
+                    : category.category
+                )
+              }
+              className={activeCategory === category.category ? "bg-muted" : ""}
+            >
+              {category.category}
+            </Button>
+            {activeCategory === category.category && (
+              <div className="absolute top-full right-0 mt-1 bg-popover text-popover-foreground p-2 rounded shadow-lg z-50 min-w-[200px]">
+                {category.variables.map((variable) => (
+                  <Button
+                    key={variable.name}
+                    variant="ghost"
+                    size="sm"
+                    className="w-full justify-start"
+                    onClick={() => {
+                      insertVariable(variable.name);
+                      setActiveCategory(null);
+                    }}
+                  >
+                    {variable.description}
+                  </Button>
+                ))}
               </div>
-              <div className="absolute -top-8 right-0 opacity-0 group-hover:opacity-100 transition-opacity">
-                <div className="bg-popover text-popover-foreground text-xs p-2 rounded shadow-lg">
-                  {variable.description}
-                </div>
-              </div>
-            </div>
+            )}
           </div>
         ))}
       </div>
-
-      {onVariablesChange && (
-        <div className="flex gap-2 items-end">
-          <div className="flex-1">
-            <label className="text-sm font-medium mb-1 block">שם המשתנה</label>
-            <input
-              type="text"
-              value={newVariable.name}
-              onChange={(e) =>
-                setNewVariable({ ...newVariable, name: e.target.value })
-              }
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              placeholder="לדוגמה: clientName"
-            />
-          </div>
-          <div className="flex-1">
-            <label className="text-sm font-medium mb-1 block">תיאור</label>
-            <input
-              type="text"
-              value={newVariable.description}
-              onChange={(e) =>
-                setNewVariable({ ...newVariable, description: e.target.value })
-              }
-              className="w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
-              placeholder="לדוגמה: שם הלקוח"
-            />
-          </div>
-          <Button onClick={addVariable} size="sm">
-            הוסף משתנה
-          </Button>
-        </div>
-      )}
 
       <Tabs value={activeTab} onValueChange={setActiveTab}>
         <TabsList>
@@ -332,6 +375,26 @@ export function RichTextEditor({
                 }
               >
                 <AlignRight className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() =>
+                  editor?.chain().focus().setTextAlign("justify").run()
+                }
+                className={
+                  editor?.isActive({ textAlign: "justify" }) ? "bg-muted" : ""
+                }
+              >
+                <AlignJustify className="h-4 w-4" />
+              </Button>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={toggleRTL}
+                className={isRTL ? "bg-muted" : ""}
+              >
+                <Languages className="h-4 w-4" />
               </Button>
               <Button
                 variant="ghost"

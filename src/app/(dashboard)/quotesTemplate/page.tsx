@@ -12,7 +12,7 @@ export default async function QuotesTemplatePage() {
     redirect("/sign-in");
   }
 
-  const { templates } = await getQuoteTemplates();
+  const templates = await getQuoteTemplates();
 
   return (
     <div className="py-10 px-4">
@@ -23,7 +23,7 @@ export default async function QuotesTemplatePage() {
         </Button>
       </div>
       <div className="rounded-md border">
-        <QuoteTemplatesTable initialTemplates={templates} />
+        <QuoteTemplatesTable initialTemplates={templates || []} />
       </div>
     </div>
   );

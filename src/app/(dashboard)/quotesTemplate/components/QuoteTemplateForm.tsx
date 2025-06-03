@@ -30,22 +30,15 @@ const formSchema = z.object({
   type: z.enum(["שירותים", "סדנאות", "מוצרים"]),
   title: z.string().min(1, "כותרת היא שדה חובה"),
   content: z.string().min(1, "תוכן הוא שדה חובה"),
-  variables: z.array(
-    z.object({
-      name: z.string().min(1, "שם המשתנה הוא שדה חובה"),
-      description: z.string().min(1, "תיאור המשתנה הוא שדה חובה"),
-    })
-  ),
 });
 
 interface QuoteTemplateFormProps {
   mode: "create" | "edit";
   template?: {
-    id: string;
+    _id: string;
     type: "שירותים" | "סדנאות" | "מוצרים";
     title: string;
     content: string;
-    variables: Array<{ name: string; description: string }>;
   };
 }
 
@@ -59,7 +52,6 @@ export function QuoteTemplateForm({ mode, template }: QuoteTemplateFormProps) {
       type: template?.type || "שירותים",
       title: template?.title || "",
       content: template?.content || "",
-      variables: template?.variables || [],
     },
   });
 
@@ -67,17 +59,26 @@ export function QuoteTemplateForm({ mode, template }: QuoteTemplateFormProps) {
     try {
       setIsLoading(true);
       if (mode === "create") {
-        await createQuoteTemplate(values);
+        const result = await createQuoteTemplate(values);
+        if (result.error) {
+          throw new Error(result.error);
+        }
         toast.success("התבנית נוצרה בהצלחה");
         router.push("/quotesTemplate");
       } else {
-        if (!template?.id) return;
-        await updateQuoteTemplate(template.id, values);
+        if (!template?._id) {
+          throw new Error("מזהה תבנית חסר");
+        }
+        const result = await updateQuoteTemplate(template._id, values);
+        if (result.error) {
+          throw new Error(result.error);
+        }
         toast.success("התבנית עודכנה בהצלחה");
         router.push("/quotesTemplate");
       }
     } catch (error) {
-      toast.error("אירעה שגיאה");
+      console.error("Error submitting form:", error);
+      toast.error(error instanceof Error ? error.message : "אירעה שגיאה");
     } finally {
       setIsLoading(false);
     }
@@ -131,13 +132,6 @@ export function QuoteTemplateForm({ mode, template }: QuoteTemplateFormProps) {
                 <RichTextEditor
                   content={field.value}
                   onChange={field.onChange}
-                  variables={form.getValues("variables")}
-                  onVariablesChange={(newVariables) => {
-                    form.setValue("variables", newVariables, {
-                      shouldValidate: true,
-                      shouldDirty: true,
-                    });
-                  }}
                 />
               </FormControl>
               <FormMessage />
