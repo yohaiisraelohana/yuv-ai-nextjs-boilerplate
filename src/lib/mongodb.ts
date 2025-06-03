@@ -1,7 +1,4 @@
 import mongoose from "mongoose";
-import Quote from "@/models/Quote";
-import QuoteTemplate from "@/models/QuoteTemplate";
-import Customer from "@/models/Customer";
 
 const MONGODB_URI = process.env.MONGODB_URI;
 
@@ -24,17 +21,6 @@ let cached = global.mongoose;
 
 if (!cached) {
   cached = global.mongoose = { conn: null, promise: null };
-}
-
-// Register models
-if (!mongoose.models.Quote) {
-  mongoose.model("Quote", Quote.schema);
-}
-if (!mongoose.models.QuoteTemplate) {
-  mongoose.model("QuoteTemplate", QuoteTemplate.schema);
-}
-if (!mongoose.models.Customer) {
-  mongoose.model("Customer", Customer.schema);
 }
 
 export async function connectToDatabase() {

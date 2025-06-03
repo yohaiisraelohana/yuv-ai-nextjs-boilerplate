@@ -9,7 +9,6 @@ import { connectToDatabase } from "@/lib/mongodb";
 import Quote from "@/models/Quote";
 import Customer from "@/models/Customer";
 import QuoteTemplate from "@/models/QuoteTemplate";
-import mongoose from "mongoose";
 
 // Ensure models are registered
 const models = {
@@ -61,57 +60,14 @@ async function getQuotes() {
   try {
     const connection = await connectToDatabase();
 
-    // Debug: Log registered models
-    console.log("Registered models:", Object.keys(mongoose.models));
-
-    // Ensure models are explicitly registered
-    if (!mongoose.models.Quote) {
-      console.log("Registering Quote model");
-      mongoose.model("Quote", Quote.schema);
-    }
-    if (!mongoose.models.QuoteTemplate) {
-      console.log("Registering QuoteTemplate model");
-      mongoose.model("QuoteTemplate", QuoteTemplate.schema);
-    }
-    if (!mongoose.models.Customer) {
-      console.log("Registering Customer model");
-      mongoose.model("Customer", Customer.schema);
+    // Ensure models are registered with the current connection
+    if (!connection.models.Quote || !connection.models.QuoteTemplate) {
+      throw new Error("Required models not registered");
     }
 
-    console.log("Models after registration:", Object.keys(mongoose.models));
-
-    // Debug: Check quote count and structure
-    const quoteCount = await Quote.countDocuments();
-    console.log("Total quotes in database:", quoteCount);
-
-    if (quoteCount > 0) {
-      // Check a sample quote structure
-      const sampleQuote = await Quote.findOne().lean();
-      console.log("Sample quote structure:", sampleQuote);
-      if (
-        sampleQuote &&
-        typeof sampleQuote === "object" &&
-        "template" in sampleQuote
-      ) {
-        console.log("Sample quote template field:", sampleQuote.template);
-        console.log("Sample quote template type:", typeof sampleQuote.template);
-      }
-    }
-
-    // Try basic query first without populate
-    console.log("Attempting basic quote query without populate...");
-    const basicQuotes = await Quote.find().sort({ createdAt: -1 }).lean();
-    console.log("Basic query successful, found", basicQuotes.length, "quotes");
-
-    // Now try with populate
-    console.log("Attempting query with populate...");
     const quotes = await Quote.find()
       .populate("customer", "name")
-      .populate({
-        path: "template",
-        select: "title",
-        model: "QuoteTemplate",
-      })
+      .populate("template", "title")
       .sort({ createdAt: -1 })
       .lean();
 

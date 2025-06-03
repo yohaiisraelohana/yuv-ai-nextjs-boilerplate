@@ -215,7 +215,7 @@ export function QuoteForm({ quote, onSubmit, trigger }: QuoteFormProps) {
           }
         }
 
-        if (quote?.template && templatesData.templates) {
+        if (quote?.template) {
           const template = templatesData.templates.find(
             (t: any) => t._id === quote.template._id
           );
