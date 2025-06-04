@@ -127,3 +127,18 @@ export async function getQuote(id: string) {
     })),
   };
 }
+
+export async function updateQuoteStatus(
+  id: string,
+  status: "טיוטה" | "נשלחה" | "ממתין לאישור" | "מאושרת" | "נדחתה" | "חתומה"
+) {
+  try {
+    await connectToDatabase();
+    const quote = await Quote.findByIdAndUpdate(id, { status }, { new: true });
+    revalidatePath("/quotes");
+    return { quote: JSON.parse(JSON.stringify(quote)) };
+  } catch (error) {
+    console.error("Error updating quote status:", error);
+    return { error: "Failed to update quote status" };
+  }
+}

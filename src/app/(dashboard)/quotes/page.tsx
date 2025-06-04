@@ -25,7 +25,7 @@ type QuoteType = {
   customer: { _id: string; name: string };
   validUntil: Date;
   totalAmount: number;
-  status: "טיוטה" | "נשלחה" | "מאושרת" | "נדחתה" | "פג תוקף";
+  status: "טיוטה" | "נשלחה" | "ממתין לאישור" | "מאושרת" | "נדחתה" | "חתומה";
   items: Array<{
     product: { _id: string; name: string; price: number };
     quantity: number;
@@ -43,7 +43,7 @@ type MongoQuote = {
   customer: { _id: Types.ObjectId; name: string };
   validUntil: Date;
   totalAmount: number;
-  status: "טיוטה" | "נשלחה" | "מאושרת" | "נדחתה" | "פג תוקף";
+  status: "טיוטה" | "נשלחה" | "ממתין לאישור" | "מאושרת" | "נדחתה" | "חתומה";
   items: Array<{
     _id: Types.ObjectId;
     product: { _id: Types.ObjectId; name: string; price: number };

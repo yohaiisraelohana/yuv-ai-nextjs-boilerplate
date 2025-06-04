@@ -33,7 +33,12 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import { QuoteForm } from "./QuoteForm";
-import { createQuote, deleteQuote, updateQuote } from "../actions";
+import {
+  createQuote,
+  deleteQuote,
+  updateQuote,
+  updateQuoteStatus,
+} from "../actions";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import { useRouter } from "next/navigation";
@@ -47,7 +52,7 @@ interface Quote {
   template: { _id: string; title: string };
   validUntil: Date;
   totalAmount: number;
-  status: "טיוטה" | "נשלחה" | "מאושרת" | "נדחתה" | "פג תוקף";
+  status: "טיוטה" | "נשלחה" | "ממתין לאישור" | "מאושרת" | "נדחתה" | "חתומה";
   items: Array<{
     product: { _id: string; name: string; price: number };
     quantity: number;
@@ -77,6 +82,23 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
     }
   };
 
+  const handleStatusChange = async (id: string, newStatus: Quote["status"]) => {
+    try {
+      const result = await updateQuoteStatus(id, newStatus);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      setQuotes(
+        quotes.map((quote) =>
+          quote._id === id ? { ...quote, status: newStatus } : quote
+        )
+      );
+      toast.success("סטטוס ההצעה עודכן בהצלחה");
+    } catch (error) {
+      toast.error("אירעה שגיאה בעדכון סטטוס ההצעה");
+    }
+  };
+
   const filteredQuotes = quotes.filter((quote) => {
     const matchesSearch =
       quote.quoteNumber.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -103,9 +125,10 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
             <SelectItem value="all">הכל</SelectItem>
             <SelectItem value="טיוטה">טיוטה</SelectItem>
             <SelectItem value="נשלחה">נשלחה</SelectItem>
+            <SelectItem value="ממתין לאישור">ממתין לאישור</SelectItem>
             <SelectItem value="מאושרת">מאושרת</SelectItem>
             <SelectItem value="נדחתה">נדחתה</SelectItem>
-            <SelectItem value="פג תוקף">פג תוקף</SelectItem>
+            <SelectItem value="חתומה">חתומה</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -135,19 +158,38 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
               </TableCell>
               <TableCell>₪{quote.totalAmount.toLocaleString()}</TableCell>
               <TableCell>
-                <Badge
-                  variant={
-                    quote.status === "מאושרת"
-                      ? "default"
-                      : quote.status === "נדחתה"
-                        ? "destructive"
-                        : quote.status === "פג תוקף"
-                          ? "secondary"
-                          : "outline"
+                <Select
+                  value={quote.status}
+                  onValueChange={(value: Quote["status"]) =>
+                    handleStatusChange(quote._id, value)
                   }
                 >
-                  {quote.status}
-                </Badge>
+                  <SelectTrigger className="w-[130px]">
+                    <SelectValue>
+                      <Badge
+                        variant={
+                          quote.status === "מאושרת"
+                            ? "default"
+                            : quote.status === "נדחתה"
+                              ? "destructive"
+                              : quote.status === "חתומה"
+                                ? "secondary"
+                                : "outline"
+                        }
+                      >
+                        {quote.status}
+                      </Badge>
+                    </SelectValue>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="טיוטה">טיוטה</SelectItem>
+                    <SelectItem value="נשלחה">נשלחה</SelectItem>
+                    <SelectItem value="ממתין לאישור">ממתין לאישור</SelectItem>
+                    <SelectItem value="מאושרת">מאושרת</SelectItem>
+                    <SelectItem value="נדחתה">נדחתה</SelectItem>
+                    <SelectItem value="חתומה">חתומה</SelectItem>
+                  </SelectContent>
+                </Select>
               </TableCell>
               <TableCell className="text-left">
                 <div className="flex gap-2">
