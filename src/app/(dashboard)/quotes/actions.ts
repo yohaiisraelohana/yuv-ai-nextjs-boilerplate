@@ -4,6 +4,43 @@ import { connectToDatabase } from "@/lib/mongodb";
 import Quote from "@/models/Quote";
 import { revalidatePath } from "next/cache";
 import { getProducts } from "../products/actions";
+import { Types } from "mongoose";
+
+interface PopulatedQuote {
+  _id: Types.ObjectId;
+  customer: {
+    _id: Types.ObjectId;
+    name: string;
+    email: string;
+  };
+  template: {
+    _id: Types.ObjectId;
+    title: string;
+  };
+  items: Array<{
+    product: {
+      _id: Types.ObjectId;
+      name: string;
+      price: number;
+    };
+    quantity: number;
+    price: number;
+    discount: number;
+  }>;
+  quoteNumber: string;
+  type: string;
+  status: string;
+  validUntil: Date;
+  totalAmount: number;
+  notes?: string;
+  publicToken?: string;
+  emailVerificationToken?: string;
+  emailVerified: boolean;
+  signature?: string;
+  signatureDate?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}
 
 export async function getQuotes() {
   try {
@@ -96,11 +133,11 @@ export async function deleteQuote(id: string) {
 
 export async function getQuote(id: string) {
   await connectToDatabase();
-  const quote = await Quote.findById(id)
+  const quote = (await Quote.findById(id)
     .populate("customer", "name email")
     .populate("template", "title")
     .populate("items.product", "name price")
-    .lean();
+    .lean()) as unknown as PopulatedQuote;
 
   if (!quote) {
     throw new Error("Quote not found");
@@ -117,7 +154,7 @@ export async function getQuote(id: string) {
       _id: quote.template._id.toString(),
       title: quote.template.title,
     },
-    items: quote.items.map((item: any) => ({
+    items: quote.items.map((item) => ({
       ...item,
       product: {
         _id: item.product._id.toString(),
