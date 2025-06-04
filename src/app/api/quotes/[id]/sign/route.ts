@@ -38,7 +38,7 @@ export async function POST(request: Request, { params }: RouteParams) {
     // Update the quote with the signature
     quote.signature = signature;
     quote.signedAt = new Date();
-    quote.status = "מאושרת";
+    quote.status = "חתומה";
     await quote.save();
 
     return NextResponse.json({ success: true });
