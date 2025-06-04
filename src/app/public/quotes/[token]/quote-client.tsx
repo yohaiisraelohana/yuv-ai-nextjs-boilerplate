@@ -18,9 +18,17 @@ interface Quote {
   customer: {
     name: string;
     email: string;
+    phone: string;
+    company: string;
+    address: {
+      street: string;
+      city: string;
+      zipCode: string;
+    };
   };
   template: {
     title: string;
+    content: string;
   };
   validUntil: string;
   totalAmount: number;
@@ -35,6 +43,29 @@ interface Quote {
     discount: number;
   }>;
   notes?: string;
+  company: {
+    name: string;
+    logo: string;
+    address: {
+      street: string;
+      city: string;
+      zipCode: string;
+    };
+    contactInfo: {
+      phone: string;
+      email: string;
+      website?: string;
+    };
+    signature: string;
+    taxId: string;
+    bankDetails: {
+      bankName: string;
+      branchNumber: string;
+      accountNumber: string;
+    };
+  } | null;
+  signature?: string;
+  signatureDate?: string;
 }
 
 interface QuoteClientProps {
@@ -46,6 +77,79 @@ export default function QuoteClient({ initialQuote }: QuoteClientProps) {
   const [email, setEmail] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   const [signature, setSignature] = useState("");
+
+  console.log({ quote });
+
+  const replaceTemplateVariables = (content: string) => {
+    const productsTable = quote.items
+      .map(
+        (item) => `
+          <tr>
+            <td class="border p-2 text-right">${item.product.name}</td>
+            <td class="border p-2 text-center">${item.quantity}</td>
+            <td class="border p-2 text-left">₪${item.price.toLocaleString()}</td>
+            <td class="border p-2 text-center">${item.discount}%</td>
+            <td class="border p-2 text-left">₪${(item.quantity * item.price * (1 - item.discount / 100)).toLocaleString()}</td>
+          </tr>
+        `
+      )
+      .join("");
+
+    const variables = {
+      companyName: quote.company?.name || "",
+      companyLogo: quote.company?.logo
+        ? `<img src="${quote.company.logo}" alt="לוגו החברה" class="h-16" />`
+        : "",
+      companyAddress: quote.company
+        ? `${quote.company.address.street}, ${quote.company.address.city} ${quote.company.address.zipCode}`
+        : "",
+      companyPhone: quote.company?.contactInfo.phone || "",
+      companyEmail: quote.company?.contactInfo.email || "",
+      companySignature: quote.company?.signature
+        ? `<img src="${quote.company.signature}" alt="חתימת החברה" class="h-16" />`
+        : "",
+      quoteNumber: quote.quoteNumber,
+      quoteDate: format(new Date(), "dd/MM/yyyy", { locale: he }),
+      quoteValidUntil: format(new Date(quote.validUntil), "dd/MM/yyyy", {
+        locale: he,
+      }),
+      quoteTotal: `₪${quote.totalAmount.toLocaleString()}`,
+      quoteDiscount: "0%", // Replace with actual discount if available
+      quoteFinalTotal: `₪${quote.totalAmount.toLocaleString()}`,
+      clientName: quote.customer.name,
+      clientAddress: `${quote.customer.address.street}, ${quote.customer.address.city} ${quote.customer.address.zipCode}`,
+      clientPhone: quote.customer.phone,
+      clientEmail: quote.customer.email,
+      clientSignature: quote.signature
+        ? `<img src="${quote.signature}" alt="חתימת הלקוח" class="h-16" />`
+        : "",
+      productsTable: `
+        <table class="w-full border-collapse mt-4">
+          <thead>
+            <tr>
+              <th class="border p-2 text-right bg-gray-50">מוצר</th>
+              <th class="border p-2 text-center bg-gray-50">כמות</th>
+              <th class="border p-2 text-left bg-gray-50">מחיר ליחידה</th>
+              <th class="border p-2 text-center bg-gray-50">הנחה</th>
+              <th class="border p-2 text-left bg-gray-50">סה"כ</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${productsTable}
+            <tr class="font-bold">
+              <td colspan="4" class="border p-2 text-right">סה"כ לתשלום:</td>
+              <td class="border p-2 text-left">₪${quote.totalAmount.toLocaleString()}</td>
+            </tr>
+          </tbody>
+        </table>
+      `,
+    };
+
+    return content.replace(
+      /\{\{(\w+)\}\}/g,
+      (match, key) => variables[key as keyof typeof variables] || match
+    );
+  };
 
   const handleVerifyEmail = async () => {
     try {
@@ -83,42 +187,21 @@ export default function QuoteClient({ initialQuote }: QuoteClientProps) {
       }
 
       toast.success("ההצעה נחתמה בהצלחה");
+      window.location.reload(); // Reload to show the signature
     } catch (error) {
       toast.error("אירעה שגיאה בחתימה על ההצעה");
     }
   };
 
-  return (
-    <div className="container mx-auto py-8">
-      <div className="max-w-4xl mx-auto">
-        <Card>
-          <CardHeader>
-            <div className="flex justify-between items-center">
-              <div>
-                <CardTitle>הצעת מחיר #{quote.quoteNumber}</CardTitle>
-                <p className="text-muted-foreground mt-1">
-                  {quote.template.title}
-                </p>
-              </div>
-              {isVerified && (
-                <Badge
-                  variant={
-                    quote.status === "מאושרת"
-                      ? "default"
-                      : quote.status === "נדחתה"
-                        ? "destructive"
-                        : quote.status === "פג תוקף"
-                          ? "secondary"
-                          : "outline"
-                  }
-                >
-                  {quote.status}
-                </Badge>
-              )}
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-6">
-            {!isVerified ? (
+  if (!isVerified) {
+    return (
+      <div className="container mx-auto py-8">
+        <div className="max-w-4xl mx-auto">
+          <Card>
+            <CardHeader>
+              <CardTitle>הצעת מחיר #{quote.quoteNumber}</CardTitle>
+            </CardHeader>
+            <CardContent>
               <div className="space-y-4">
                 <h3 className="font-medium">אימות אימייל</h3>
                 <p className="text-muted-foreground">
@@ -139,78 +222,59 @@ export default function QuoteClient({ initialQuote }: QuoteClientProps) {
                   <Button onClick={handleVerifyEmail}>אמת אימייל</Button>
                 </div>
               </div>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <h3 className="font-medium mb-1">לקוח</h3>
-                    <p>{quote.customer.name}</p>
-                  </div>
-                  <div>
-                    <h3 className="font-medium mb-1">תוקף עד</h3>
-                    <p>
-                      {format(new Date(quote.validUntil), "dd/MM/yyyy", {
-                        locale: he,
-                      })}
-                    </p>
-                  </div>
-                </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
+  }
 
-                <div>
-                  <h3 className="font-medium mb-2">פריטים</h3>
-                  <div className="space-y-2">
-                    {quote.items.map((item, index) => (
-                      <div
-                        key={index}
-                        className="flex justify-between items-center p-2 bg-muted rounded"
-                      >
-                        <div>
-                          <p className="font-medium">{item.product.name}</p>
-                          <p className="text-sm text-muted-foreground">
-                            {item.quantity} יח' x ₪{item.price.toLocaleString()}
-                            {item.discount > 0 && ` (-${item.discount}%)`}
-                          </p>
-                        </div>
-                        <p className="font-medium">
-                          ₪
-                          {(
-                            item.quantity *
-                            item.price *
-                            (1 - item.discount / 100)
-                          ).toLocaleString()}
-                        </p>
-                      </div>
-                    ))}
-                  </div>
-                </div>
+  return (
+    <div className="container mx-auto py-8">
+      <div className="max-w-4xl mx-auto">
+        <Card>
+          <CardHeader>
+            <div className="flex justify-between items-center">
+              <div>
+                <CardTitle>הצעת מחיר #{quote.quoteNumber}</CardTitle>
+                <p className="text-muted-foreground mt-1">
+                  {quote.template.title}
+                </p>
+              </div>
+              <Badge
+                variant={
+                  quote.status === "מאושרת"
+                    ? "default"
+                    : quote.status === "נדחתה"
+                      ? "destructive"
+                      : quote.status === "פג תוקף"
+                        ? "secondary"
+                        : "outline"
+                }
+              >
+                {quote.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <div
+              className="prose max-w-none"
+              dangerouslySetInnerHTML={{
+                __html: replaceTemplateVariables(quote.template.content),
+              }}
+            />
 
-                <div className="border-t pt-4">
-                  <div className="flex justify-between items-center">
-                    <h3 className="font-medium">סה״כ לתשלום</h3>
-                    <p className="text-2xl font-bold">
-                      ₪{quote.totalAmount.toLocaleString()}
-                    </p>
-                  </div>
-                </div>
-
-                {quote.notes && (
-                  <div>
-                    <h3 className="font-medium mb-2">הערות</h3>
-                    <p className="text-muted-foreground">{quote.notes}</p>
-                  </div>
-                )}
-
-                <div className="space-y-4">
-                  <h3 className="font-medium">חתימה על ההצעה</h3>
-                  <SignaturePad
-                    onSignatureChange={setSignature}
-                    className="border rounded-lg"
-                  />
-                  <Button onClick={handleSign} disabled={!signature}>
-                    חתום על ההצעה
-                  </Button>
-                </div>
-              </>
+            {!quote.signature && (
+              <div className="mt-8 space-y-4">
+                <h3 className="font-medium">חתימה על ההצעה</h3>
+                <SignaturePad
+                  onSignatureChange={setSignature}
+                  className="border rounded-lg"
+                />
+                <Button onClick={handleSign} disabled={!signature}>
+                  חתום על ההצעה
+                </Button>
+              </div>
             )}
           </CardContent>
         </Card>
