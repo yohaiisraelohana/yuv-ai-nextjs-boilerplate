@@ -12,11 +12,11 @@ export async function GET(
 ) {
   try {
     await connectToDatabase();
-    const quote = await Quote.findById(params.id)
+    const quote = (await Quote.findById(params.id)
       .populate("customer", "name email phone company address")
       .populate("template", "title content")
       .populate("items.product", "name price")
-      .lean();
+      .lean()) as any;
 
     if (!quote) {
       return NextResponse.json({ error: "Quote not found" }, { status: 404 });
@@ -81,7 +81,7 @@ export async function GET(
 
     // Launch puppeteer
     const browser = await puppeteer.launch({
-      headless: "new",
+      headless: true,
     });
     const page = await browser.newPage();
 
