@@ -9,8 +9,8 @@ const quoteSchema = new mongoose.Schema(
     },
     type: {
       type: String,
+      enum: ["שירותים", "סדנאות", "מוצרים"],
       required: true,
-      enum: ["הצעה", "הזמנה"],
     },
     customer: {
       type: mongoose.Schema.Types.ObjectId,
