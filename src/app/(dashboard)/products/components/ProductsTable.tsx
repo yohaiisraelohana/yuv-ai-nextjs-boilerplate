@@ -113,8 +113,8 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">הכל</SelectItem>
-              {categories.map((category) => (
-                <SelectItem key={category} value={category}>
+              {categories.map((category, index) => (
+                <SelectItem key={`${category}-${index}`} value={category}>
                   {category}
                 </SelectItem>
               ))}

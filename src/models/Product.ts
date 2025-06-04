@@ -13,6 +13,14 @@ const productSchema = new mongoose.Schema(
     description: {
       type: String,
     },
+    category: {
+      type: String,
+      required: true,
+    },
+    discount: {
+      type: Number,
+      default: 0,
+    },
     isActive: {
       type: Boolean,
       default: true,
