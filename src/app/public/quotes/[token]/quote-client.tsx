@@ -105,6 +105,7 @@ export default function QuoteClient({ initialQuote }: QuoteClientProps) {
         : "",
       companyPhone: quote.company?.contactInfo.phone || "",
       companyEmail: quote.company?.contactInfo.email || "",
+      companyWebsite: quote.company?.contactInfo.website || "",
       companySignature: quote.company?.signature
         ? `<img src="${quote.company.signature}" alt="חתימת החברה" class="h-16" />`
         : "",
@@ -114,9 +115,13 @@ export default function QuoteClient({ initialQuote }: QuoteClientProps) {
         locale: he,
       }),
       quoteTotal: `₪${quote.totalAmount.toLocaleString()}`,
-      quoteDiscount: "0%", // Replace with actual discount if available
+      quoteDiscount: "0%",
       quoteFinalTotal: `₪${quote.totalAmount.toLocaleString()}`,
+      signatureDate: quote.signatureDate
+        ? format(new Date(quote.signatureDate), "dd/MM/yyyy", { locale: he })
+        : "",
       clientName: quote.customer.name,
+      clientCompany: quote.customer.company || "",
       clientAddress: `${quote.customer.address.street}, ${quote.customer.address.city} ${quote.customer.address.zipCode}`,
       clientPhone: quote.customer.phone,
       clientEmail: quote.customer.email,

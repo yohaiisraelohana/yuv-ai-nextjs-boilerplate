@@ -54,6 +54,7 @@ const PREDEFINED_VARIABLES = [
       { name: "companyAddress", description: "כתובת החברה" },
       { name: "companyPhone", description: "טלפון החברה" },
       { name: "companyEmail", description: "אימייל החברה" },
+      { name: "companyWebsite", description: "אתר החברה" },
       { name: "companySignature", description: "חתימת החברה" },
     ],
   },
@@ -66,12 +67,14 @@ const PREDEFINED_VARIABLES = [
       { name: "quoteTotal", description: "סכום כולל" },
       { name: "quoteDiscount", description: "הנחה" },
       { name: "quoteFinalTotal", description: "סכום סופי" },
+      { name: "signatureDate", description: "תאריך חתימה" },
     ],
   },
   {
     category: "פרטי הלקוח",
     variables: [
       { name: "clientName", description: "שם הלקוח" },
+      { name: "clientCompany", description: "חברת הלקוח" },
       { name: "clientAddress", description: "כתובת הלקוח" },
       { name: "clientPhone", description: "טלפון הלקוח" },
       { name: "clientEmail", description: "אימייל הלקוח" },
@@ -80,13 +83,7 @@ const PREDEFINED_VARIABLES = [
   },
   {
     category: "טבלת מוצרים",
-    variables: [
-      { name: "productsTable", description: "טבלת מוצרים מלאה" },
-      { name: "productName", description: "שם המוצר" },
-      { name: "productQuantity", description: "כמות" },
-      { name: "productPrice", description: "מחיר ליחידה" },
-      { name: "productTotal", description: "סכום" },
-    ],
+    variables: [{ name: "productsTable", description: "טבלת מוצרים מלאה" }],
   },
 ];
 

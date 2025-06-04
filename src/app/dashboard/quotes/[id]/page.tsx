@@ -147,6 +147,7 @@ const replaceTemplateVariables = (content: string, quote: any) => {
       : "",
     companyPhone: quote.company?.contactInfo?.phone || "",
     companyEmail: quote.company?.contactInfo?.email || "",
+    companyWebsite: quote.company?.contactInfo?.website || "",
     companySignature: quote.company?.signature
       ? `<img src="${quote.company.signature}" alt="חתימת החברה" class="h-16" />`
       : "",
@@ -156,9 +157,13 @@ const replaceTemplateVariables = (content: string, quote: any) => {
       locale: he,
     }),
     quoteTotal: `₪${quote.totalAmount.toLocaleString()}`,
-    quoteDiscount: "0%", // Replace with actual discount if available
+    quoteDiscount: "0%",
     quoteFinalTotal: `₪${quote.totalAmount.toLocaleString()}`,
+    signatureDate: quote.signedAt
+      ? format(new Date(quote.signedAt), "dd/MM/yyyy", { locale: he })
+      : "",
     clientName: quote.customer.name,
+    clientCompany: quote.customer.company || "",
     clientAddress: quote.customer.address
       ? `${quote.customer.address.street}, ${quote.customer.address.city} ${quote.customer.address.zipCode}`
       : "",
