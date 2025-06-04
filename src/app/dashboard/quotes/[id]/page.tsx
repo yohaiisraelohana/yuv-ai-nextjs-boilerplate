@@ -9,6 +9,7 @@ import { he } from "date-fns/locale";
 import { Button } from "@/components/ui/button";
 import { toast } from "sonner";
 import { CopyLinkButton } from "./CopyLinkButton";
+import { Download } from "lucide-react";
 import mongoose from "mongoose";
 
 interface CompanyData {
@@ -225,7 +226,18 @@ export default async function QuotePage({
       <Card>
         <CardHeader className="flex flex-row items-center justify-between">
           <CardTitle>הצעת מחיר #{quote.quoteNumber}</CardTitle>
-          <CopyLinkButton quoteId={quote._id} publicToken={quote.publicToken} />
+          <div className="flex gap-2">
+            <CopyLinkButton
+              quoteId={quote._id}
+              publicToken={quote.publicToken}
+            />
+            <form action={`/api/quotes/${quote._id}/pdf`} method="GET">
+              <Button type="submit" variant="outline" size="sm">
+                <Download className="w-4 h-4 mr-2" />
+                הורד PDF
+              </Button>
+            </form>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-6">
@@ -283,8 +295,9 @@ export default async function QuotePage({
             <div>
               <h3 className="font-semibold mb-2">תבנית</h3>
               <p className="font-medium">{quote.template.title}</p>
+
               <div
-                className="prose max-w-none mt-2"
+                className="prose max-w-none mt-2 border rounded-lg p-4"
                 dangerouslySetInnerHTML={{
                   __html: replaceTemplateVariables(
                     quote.template.content,
