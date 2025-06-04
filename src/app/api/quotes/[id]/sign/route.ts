@@ -2,10 +2,13 @@ import { NextResponse } from "next/server";
 import { connectToDatabase } from "@/lib/mongodb";
 import Quote from "@/models/Quote";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+interface RouteParams {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { signature } = await request.json();
 
@@ -17,7 +20,8 @@ export async function POST(
     }
 
     await connectToDatabase();
-    const quote = await Quote.findById(params.id);
+    const resolvedParams = await params;
+    const quote = await Quote.findById(resolvedParams.id);
 
     if (!quote) {
       return NextResponse.json({ error: "Quote not found" }, { status: 404 });

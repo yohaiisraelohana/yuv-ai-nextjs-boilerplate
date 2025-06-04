@@ -3,10 +3,13 @@ import { connectToDatabase } from "@/lib/mongodb";
 import Quote from "@/models/Quote";
 import { cookies } from "next/headers";
 
-export async function POST(
-  request: Request,
-  { params }: { params: { id: string } }
-) {
+interface RouteParams {
+  params: Promise<{
+    id: string;
+  }>;
+}
+
+export async function POST(request: Request, { params }: RouteParams) {
   try {
     const { email } = await request.json();
 
@@ -15,7 +18,11 @@ export async function POST(
     }
 
     await connectToDatabase();
-    const quote = await Quote.findById(params.id);
+    const resolvedParams = await params;
+    const quote = await Quote.findById(resolvedParams.id).populate(
+      "customer",
+      "email"
+    );
 
     if (!quote) {
       return NextResponse.json({ error: "Quote not found" }, { status: 404 });
