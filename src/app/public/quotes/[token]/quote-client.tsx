@@ -42,7 +42,7 @@ interface QuoteClientProps {
 
 export default function QuoteClient({ initialQuote }: QuoteClientProps) {
   const [quote] = useState<Quote>(initialQuote);
-  const [email, setEmail] = useState(initialQuote.customer.email || "");
+  const [email, setEmail] = useState("");
   const [isVerified, setIsVerified] = useState(false);
   const [signature, setSignature] = useState("");
 
@@ -99,81 +99,24 @@ export default function QuoteClient({ initialQuote }: QuoteClientProps) {
                   {quote.template.title}
                 </p>
               </div>
-              <Badge
-                variant={
-                  quote.status === "מאושרת"
-                    ? "default"
-                    : quote.status === "נדחתה"
-                      ? "destructive"
-                      : quote.status === "פג תוקף"
-                        ? "secondary"
-                        : "outline"
-                }
-              >
-                {quote.status}
-              </Badge>
+              {isVerified && (
+                <Badge
+                  variant={
+                    quote.status === "מאושרת"
+                      ? "default"
+                      : quote.status === "נדחתה"
+                        ? "destructive"
+                        : quote.status === "פג תוקף"
+                          ? "secondary"
+                          : "outline"
+                  }
+                >
+                  {quote.status}
+                </Badge>
+              )}
             </div>
           </CardHeader>
           <CardContent className="space-y-6">
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <h3 className="font-medium mb-1">לקוח</h3>
-                <p>{quote.customer.name}</p>
-              </div>
-              <div>
-                <h3 className="font-medium mb-1">תוקף עד</h3>
-                <p>
-                  {format(new Date(quote.validUntil), "dd/MM/yyyy", {
-                    locale: he,
-                  })}
-                </p>
-              </div>
-            </div>
-
-            <div>
-              <h3 className="font-medium mb-2">פריטים</h3>
-              <div className="space-y-2">
-                {quote.items.map((item, index) => (
-                  <div
-                    key={index}
-                    className="flex justify-between items-center p-2 bg-muted rounded"
-                  >
-                    <div>
-                      <p className="font-medium">{item.product.name}</p>
-                      <p className="text-sm text-muted-foreground">
-                        {item.quantity} יח' x ₪{item.price.toLocaleString()}
-                        {item.discount > 0 && ` (-${item.discount}%)`}
-                      </p>
-                    </div>
-                    <p className="font-medium">
-                      ₪
-                      {(
-                        item.quantity *
-                        item.price *
-                        (1 - item.discount / 100)
-                      ).toLocaleString()}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            <div className="border-t pt-4">
-              <div className="flex justify-between items-center">
-                <h3 className="font-medium">סה״כ לתשלום</h3>
-                <p className="text-2xl font-bold">
-                  ₪{quote.totalAmount.toLocaleString()}
-                </p>
-              </div>
-            </div>
-
-            {quote.notes && (
-              <div>
-                <h3 className="font-medium mb-2">הערות</h3>
-                <p className="text-muted-foreground">{quote.notes}</p>
-              </div>
-            )}
-
             {!isVerified ? (
               <div className="space-y-4">
                 <h3 className="font-medium">אימות אימייל</h3>
@@ -186,20 +129,86 @@ export default function QuoteClient({ initialQuote }: QuoteClientProps) {
                     placeholder="הזן כתובת אימייל"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter") {
+                        handleVerifyEmail();
+                      }
+                    }}
                   />
                   <Button onClick={handleVerifyEmail}>אמת אימייל</Button>
                 </div>
               </div>
             ) : (
-              <div className="space-y-4">
-                <h3 className="font-medium">חתימה על ההצעה</h3>
-                <Textarea
-                  placeholder="הזן את חתימתך כאן..."
-                  value={signature}
-                  onChange={(e) => setSignature(e.target.value)}
-                />
-                <Button onClick={handleSign}>חתום על ההצעה</Button>
-              </div>
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  <div>
+                    <h3 className="font-medium mb-1">לקוח</h3>
+                    <p>{quote.customer.name}</p>
+                  </div>
+                  <div>
+                    <h3 className="font-medium mb-1">תוקף עד</h3>
+                    <p>
+                      {format(new Date(quote.validUntil), "dd/MM/yyyy", {
+                        locale: he,
+                      })}
+                    </p>
+                  </div>
+                </div>
+
+                <div>
+                  <h3 className="font-medium mb-2">פריטים</h3>
+                  <div className="space-y-2">
+                    {quote.items.map((item, index) => (
+                      <div
+                        key={index}
+                        className="flex justify-between items-center p-2 bg-muted rounded"
+                      >
+                        <div>
+                          <p className="font-medium">{item.product.name}</p>
+                          <p className="text-sm text-muted-foreground">
+                            {item.quantity} יח' x ₪{item.price.toLocaleString()}
+                            {item.discount > 0 && ` (-${item.discount}%)`}
+                          </p>
+                        </div>
+                        <p className="font-medium">
+                          ₪
+                          {(
+                            item.quantity *
+                            item.price *
+                            (1 - item.discount / 100)
+                          ).toLocaleString()}
+                        </p>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="border-t pt-4">
+                  <div className="flex justify-between items-center">
+                    <h3 className="font-medium">סה״כ לתשלום</h3>
+                    <p className="text-2xl font-bold">
+                      ₪{quote.totalAmount.toLocaleString()}
+                    </p>
+                  </div>
+                </div>
+
+                {quote.notes && (
+                  <div>
+                    <h3 className="font-medium mb-2">הערות</h3>
+                    <p className="text-muted-foreground">{quote.notes}</p>
+                  </div>
+                )}
+
+                <div className="space-y-4">
+                  <h3 className="font-medium">חתימה על ההצעה</h3>
+                  <Textarea
+                    placeholder="הזן את חתימתך כאן..."
+                    value={signature}
+                    onChange={(e) => setSignature(e.target.value)}
+                  />
+                  <Button onClick={handleSign}>חתום על ההצעה</Button>
+                </div>
+              </>
             )}
           </CardContent>
         </Card>
