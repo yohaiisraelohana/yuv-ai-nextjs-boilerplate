@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { he } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
 import { Textarea } from "@/components/ui/textarea";
+import { SignaturePad } from "./SignaturePad";
 
 interface Quote {
   _id: string;
@@ -201,12 +202,13 @@ export default function QuoteClient({ initialQuote }: QuoteClientProps) {
 
                 <div className="space-y-4">
                   <h3 className="font-medium">חתימה על ההצעה</h3>
-                  <Textarea
-                    placeholder="הזן את חתימתך כאן..."
-                    value={signature}
-                    onChange={(e) => setSignature(e.target.value)}
+                  <SignaturePad
+                    onSignatureChange={setSignature}
+                    className="border rounded-lg"
                   />
-                  <Button onClick={handleSign}>חתום על ההצעה</Button>
+                  <Button onClick={handleSign} disabled={!signature}>
+                    חתום על ההצעה
+                  </Button>
                 </div>
               </>
             )}
