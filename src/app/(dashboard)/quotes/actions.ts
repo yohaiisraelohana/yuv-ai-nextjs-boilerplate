@@ -132,37 +132,23 @@ export async function deleteQuote(id: string) {
 }
 
 export async function getQuote(id: string) {
-  await connectToDatabase();
-  const quote = (await Quote.findById(id)
-    .populate("customer", "name email")
-    .populate("template", "title")
-    .populate("items.product", "name price")
-    .lean()) as unknown as PopulatedQuote;
+  try {
+    await connectToDatabase();
+    const quote = await Quote.findById(id)
+      .populate("customer", "name email")
+      .populate("template", "title")
+      .populate("items.product", "name price")
+      .lean();
 
-  if (!quote) {
-    throw new Error("Quote not found");
+    if (!quote) {
+      throw new Error("Quote not found");
+    }
+
+    return JSON.parse(JSON.stringify(quote));
+  } catch (error) {
+    console.error("Error fetching quote:", error);
+    throw new Error("Failed to fetch quote");
   }
-
-  return {
-    ...quote,
-    _id: quote._id.toString(),
-    customer: {
-      _id: quote.customer._id.toString(),
-      name: quote.customer.name,
-    },
-    template: {
-      _id: quote.template._id.toString(),
-      title: quote.template.title,
-    },
-    items: quote.items.map((item) => ({
-      ...item,
-      product: {
-        _id: item.product._id.toString(),
-        name: item.product.name,
-        price: item.product.price,
-      },
-    })),
-  };
 }
 
 export async function updateQuoteStatus(

@@ -2,21 +2,35 @@
 
 import { QuoteForm } from "../../components/QuoteForm";
 import { useRouter } from "next/navigation";
-import { updateQuote } from "../../actions";
+import { updateQuote, getQuote } from "../../actions";
 import { toast } from "sonner";
 import { useEffect, useState } from "react";
 
-export default function EditQuotePage({ params }: { params: { id: string } }) {
+export default function EditQuotePage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
   const router = useRouter();
   const [quote, setQuote] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [quoteId, setQuoteId] = useState<string>("");
 
   useEffect(() => {
+    const initializeParams = async () => {
+      const resolvedParams = await params;
+      setQuoteId(resolvedParams.id);
+    };
+
+    initializeParams();
+  }, [params]);
+
+  useEffect(() => {
+    if (!quoteId) return;
+
     const fetchQuote = async () => {
       try {
-        const response = await fetch(`/api/quotes/${params.id}`);
-        if (!response.ok) throw new Error("Failed to fetch quote");
-        const data = await response.json();
+        const data = await getQuote(quoteId);
         setQuote(data);
       } catch (error) {
         toast.error("שגיאה בטעינת ההצעה");
@@ -27,11 +41,11 @@ export default function EditQuotePage({ params }: { params: { id: string } }) {
     };
 
     fetchQuote();
-  }, [params.id, router]);
+  }, [quoteId, router]);
 
   const handleSubmit = async (data: any) => {
     try {
-      const result = await updateQuote(params.id, data);
+      const result = await updateQuote(quoteId, data);
       if (result.error) {
         throw new Error(result.error);
       }
