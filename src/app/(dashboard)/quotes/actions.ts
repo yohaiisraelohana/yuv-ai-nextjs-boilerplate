@@ -165,3 +165,50 @@ export async function updateQuoteStatus(
     return { error: "Failed to update quote status" };
   }
 }
+
+export async function duplicateQuote(id: string) {
+  try {
+    await connectToDatabase();
+
+    // Find the original quote
+    const originalQuote: any = await Quote.findById(id)
+      .populate("customer", "_id name")
+      .populate("template", "_id title")
+      .populate("items.product", "_id name price")
+      .lean();
+
+    if (!originalQuote) {
+      throw new Error("Quote not found");
+    }
+
+    // Generate new quote number
+    const quoteNumber = await generateQuoteNumber();
+
+    // Create new quote with copied data, excluding signature-related and token fields
+    const newQuoteData = {
+      quoteNumber,
+      type: originalQuote.type,
+      customer: originalQuote.customer._id,
+      template: originalQuote.template._id,
+      items: originalQuote.items.map((item: any) => ({
+        product: item.product._id,
+        quantity: item.quantity,
+        price: item.price,
+        discount: item.discount,
+      })),
+      status: "טיוטה" as const,
+      validUntil: originalQuote.validUntil,
+      totalAmount: originalQuote.totalAmount,
+      notes: originalQuote.notes,
+      // Explicitly exclude: signature, signatureDate, emailVerified, emailVerificationToken, publicToken
+    };
+
+    const newQuote = await Quote.create(newQuoteData);
+    revalidatePath("/quotes");
+
+    return { quote: JSON.parse(JSON.stringify(newQuote)) };
+  } catch (error) {
+    console.error("Error duplicating quote:", error);
+    return { error: "Failed to duplicate quote" };
+  }
+}

@@ -20,7 +20,7 @@ import {
 import { useState } from "react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import { Eye, Pencil, Trash2, Copy } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,7 +32,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { deleteQuote, updateQuoteStatus } from "../actions";
+import { deleteQuote, updateQuoteStatus, duplicateQuote } from "../actions";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
 import Link from "next/link";
@@ -88,6 +88,20 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
       toast.success("סטטוס ההצעה עודכן בהצלחה");
     } catch (error) {
       toast.error("אירעה שגיאה בעדכון סטטוס ההצעה");
+    }
+  };
+
+  const handleDuplicate = async (id: string) => {
+    try {
+      const result = await duplicateQuote(id);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      // Refresh the page to show the new quote
+      window.location.reload();
+      toast.success("ההצעה שוכפלה בהצלחה");
+    } catch (error) {
+      toast.error("אירעה שגיאה בשכפול ההצעה");
     }
   };
 
@@ -195,11 +209,21 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
                       <Eye className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link href={`/quotes/edit/${quote._id}`}>
-                    <Button variant="ghost" size="icon">
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                  </Link>
+                  {quote.status !== "חתומה" && (
+                    <Link href={`/quotes/edit/${quote._id}`}>
+                      <Button variant="ghost" size="icon">
+                        <Pencil className="h-4 w-4" />
+                      </Button>
+                    </Link>
+                  )}
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={() => handleDuplicate(quote._id)}
+                    title="שכפול הצעה"
+                  >
+                    <Copy className="h-4 w-4" />
+                  </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
                       <Button variant="ghost" size="icon">
