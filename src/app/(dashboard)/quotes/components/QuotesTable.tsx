@@ -147,13 +147,13 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>מספר הצעה</TableHead>
-            <TableHead>לקוח</TableHead>
-            <TableHead>סוג</TableHead>
-            <TableHead>תוקף</TableHead>
-            <TableHead>סכום</TableHead>
-            <TableHead>סטטוס</TableHead>
-            <TableHead className="text-left">פעולות</TableHead>
+            <TableHead className="text-right">מספר הצעה</TableHead>
+            <TableHead className="text-right">לקוח</TableHead>
+            <TableHead className="text-right">סוג</TableHead>
+            <TableHead className="text-right">תוקף</TableHead>
+            <TableHead className="text-right">סכום</TableHead>
+            <TableHead className="text-right">סטטוס</TableHead>
+            <TableHead className="text-right">פעולות</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
