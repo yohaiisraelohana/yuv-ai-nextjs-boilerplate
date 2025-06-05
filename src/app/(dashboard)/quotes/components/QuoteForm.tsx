@@ -143,6 +143,9 @@ export function QuoteForm({ quote, onSubmit }: QuoteFormProps) {
     name: "items",
   });
 
+  // Watch the items array to make calculations reactive
+  const watchedItems = form.watch("items");
+
   // Fetch customers, products and templates
   useEffect(() => {
     const fetchData = async () => {
@@ -232,9 +235,10 @@ export function QuoteForm({ quote, onSubmit }: QuoteFormProps) {
   };
 
   const calculateTotal = () => {
-    return form
-      .getValues("items")
-      .reduce((sum, item) => sum + calculateItemTotal(item), 0);
+    return watchedItems.reduce(
+      (sum, item) => sum + calculateItemTotal(item),
+      0
+    );
   };
 
   const calculateVAT = () => {
@@ -589,7 +593,7 @@ export function QuoteForm({ quote, onSubmit }: QuoteFormProps) {
                   <Badge variant="secondary">
                     ₪
                     {calculateItemTotal(
-                      form.getValues(`items.${index}`)
+                      watchedItems[index] || form.getValues(`items.${index}`)
                     ).toLocaleString()}
                   </Badge>
                 </div>
