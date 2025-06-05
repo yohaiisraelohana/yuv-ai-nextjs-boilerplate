@@ -205,13 +205,13 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
               <TableCell className="text-left">
                 <div className="flex gap-2">
                   <Link href={`/dashboard/quotes/${quote._id}`}>
-                    <Button variant="ghost" size="icon">
+                    <Button variant="ghost" size="icon" title="צפייה בהצעה">
                       <Eye className="h-4 w-4" />
                     </Button>
                   </Link>
                   {quote.status !== "חתומה" && (
                     <Link href={`/quotes/edit/${quote._id}`}>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" title="עריכת הצעה">
                         <Pencil className="h-4 w-4" />
                       </Button>
                     </Link>
@@ -226,7 +226,7 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
                   </Button>
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button variant="ghost" size="icon">
+                      <Button variant="ghost" size="icon" title="מחיקת הצעה">
                         <Trash2 className="h-4 w-4" />
                       </Button>
                     </AlertDialogTrigger>
