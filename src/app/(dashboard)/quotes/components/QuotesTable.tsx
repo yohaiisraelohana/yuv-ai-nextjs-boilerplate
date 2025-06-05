@@ -72,6 +72,19 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const router = useRouter();
 
+  const handleCreateQuote = async (data: any) => {
+    try {
+      const result = await createQuote(data);
+      if (result.error) {
+        throw new Error(result.error);
+      }
+      setQuotes([result.quote, ...quotes]);
+      toast.success("ההצעה נוצרה בהצלחה");
+    } catch (error) {
+      toast.error("אירעה שגיאה ביצירת ההצעה");
+    }
+  };
+
   const handleDelete = async (id: string) => {
     try {
       await deleteQuote(id);
@@ -110,27 +123,30 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
 
   return (
     <div className="space-y-4">
-      <div className="flex gap-4">
-        <Input
-          placeholder="חיפוש לפי מספר הצעה או שם לקוח..."
-          value={searchTerm}
-          onChange={(e) => setSearchTerm(e.target.value)}
-          className="max-w-sm"
-        />
-        <Select value={statusFilter} onValueChange={setStatusFilter}>
-          <SelectTrigger className="w-[180px]">
-            <SelectValue placeholder="סטטוס" />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">הכל</SelectItem>
-            <SelectItem value="טיוטה">טיוטה</SelectItem>
-            <SelectItem value="נשלחה">נשלחה</SelectItem>
-            <SelectItem value="ממתין לאישור">ממתין לאישור</SelectItem>
-            <SelectItem value="מאושרת">מאושרת</SelectItem>
-            <SelectItem value="נדחתה">נדחתה</SelectItem>
-            <SelectItem value="חתומה">חתומה</SelectItem>
-          </SelectContent>
-        </Select>
+      <div className="flex justify-between items-center">
+        <div className="flex gap-4">
+          <Input
+            placeholder="חיפוש לפי מספר הצעה או שם לקוח..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+            className="max-w-sm"
+          />
+          <Select value={statusFilter} onValueChange={setStatusFilter}>
+            <SelectTrigger className="w-[180px]">
+              <SelectValue placeholder="סטטוס" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">הכל</SelectItem>
+              <SelectItem value="טיוטה">טיוטה</SelectItem>
+              <SelectItem value="נשלחה">נשלחה</SelectItem>
+              <SelectItem value="ממתין לאישור">ממתין לאישור</SelectItem>
+              <SelectItem value="מאושרת">מאושרת</SelectItem>
+              <SelectItem value="נדחתה">נדחתה</SelectItem>
+              <SelectItem value="חתומה">חתומה</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+        <QuoteForm onSubmit={handleCreateQuote} />
       </div>
 
       <Table>
