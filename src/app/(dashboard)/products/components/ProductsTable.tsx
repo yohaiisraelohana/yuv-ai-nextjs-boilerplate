@@ -143,12 +143,12 @@ export function ProductsTable({ initialProducts }: ProductsTableProps) {
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>שם המוצר</TableHead>
-            <TableHead>תיאור</TableHead>
-            <TableHead>קטגוריה</TableHead>
-            <TableHead>מחיר</TableHead>
-            <TableHead>הנחה</TableHead>
-            <TableHead>פעולות</TableHead>
+            <TableHead className="text-right">שם המוצר</TableHead>
+            <TableHead className="text-right">תיאור</TableHead>
+            <TableHead className="text-right">קטגוריה</TableHead>
+            <TableHead className="text-right">מחיר</TableHead>
+            <TableHead className="text-right">הנחה</TableHead>
+            <TableHead className="text-right">פעולות</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>

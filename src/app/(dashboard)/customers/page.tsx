@@ -42,12 +42,12 @@ export default async function CustomersPage() {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>שם</TableHead>
-              <TableHead>חברה</TableHead>
-              <TableHead>אימייל</TableHead>
-              <TableHead>טלפון</TableHead>
-              <TableHead>כתובת</TableHead>
-              <TableHead className="text-left">פעולות</TableHead>
+              <TableHead className="text-right">שם</TableHead>
+              <TableHead className="text-right">חברה</TableHead>
+              <TableHead className="text-right">אימייל</TableHead>
+              <TableHead className="text-right">טלפון</TableHead>
+              <TableHead className="text-right">כתובת</TableHead>
+              <TableHead className="text-right">פעולות</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>

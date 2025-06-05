@@ -119,10 +119,10 @@ export function QuoteTemplatesTable({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead>סוג</TableHead>
-            <TableHead>כותרת</TableHead>
-            <TableHead>סטטוס</TableHead>
-            <TableHead className="w-[100px]">פעולות</TableHead>
+            <TableHead className="text-right">סוג</TableHead>
+            <TableHead className="text-right">כותרת</TableHead>
+            <TableHead className="text-right">סטטוס</TableHead>
+            <TableHead className="text-right w-[100px]">פעולות</TableHead>
           </TableRow>
         </TableHeader>
         <TableBody>
