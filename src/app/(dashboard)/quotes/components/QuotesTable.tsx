@@ -17,10 +17,10 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { he } from "date-fns/locale";
-import { Eye, Pencil, Trash2, Share2 } from "lucide-react";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -32,16 +32,9 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
-import { QuoteForm } from "./QuoteForm";
-import {
-  createQuote,
-  deleteQuote,
-  updateQuote,
-  updateQuoteStatus,
-} from "../actions";
+import { deleteQuote, updateQuoteStatus } from "../actions";
 import { toast } from "sonner";
 import { Badge } from "@/components/ui/badge";
-import { useRouter } from "next/navigation";
 import Link from "next/link";
 
 interface Quote {
@@ -70,20 +63,6 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
   const [quotes, setQuotes] = useState<Quote[]>(initialQuotes);
   const [searchTerm, setSearchTerm] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
-  const router = useRouter();
-
-  const handleCreateQuote = async (data: any) => {
-    try {
-      const result = await createQuote(data);
-      if (result.error) {
-        throw new Error(result.error);
-      }
-      setQuotes([result.quote, ...quotes]);
-      toast.success("ההצעה נוצרה בהצלחה");
-    } catch (error) {
-      toast.error("אירעה שגיאה ביצירת ההצעה");
-    }
-  };
 
   const handleDelete = async (id: string) => {
     try {
@@ -146,7 +125,9 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
             </SelectContent>
           </Select>
         </div>
-        <QuoteForm onSubmit={handleCreateQuote} />
+        <Link href="/quotes/new">
+          <Button>הצעה חדשה</Button>
+        </Link>
       </div>
 
       <Table>
@@ -214,7 +195,7 @@ export function QuotesTable({ initialQuotes }: QuotesTableProps) {
                       <Eye className="h-4 w-4" />
                     </Button>
                   </Link>
-                  <Link href={`/dashboard/quotes/${quote._id}`}>
+                  <Link href={`/quotes/edit/${quote._id}`}>
                     <Button variant="ghost" size="icon">
                       <Pencil className="h-4 w-4" />
                     </Button>
